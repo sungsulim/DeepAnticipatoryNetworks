@@ -15,7 +15,10 @@ class Experiment(object):
         self.total_train_steps = config.total_train_steps
         self.test_interval = config.test_interval
         self.test_ep_num = config.test_ep_num
+
+        self.agent_pre_train_steps = config.agent_pre_train_steps
         self.agent_update_freq = config.agent_update_freq
+
 
         # results
         self.train_return_per_episodeX = []
@@ -45,6 +48,7 @@ class Experiment(object):
             train_start_time = time.time()
             episode_returnX, num_stepsX, force_terminatedX, test_session_timeX = self.run_episode_train('x')
             episode_returnY, num_stepsY, force_terminatedY, test_session_timeY = self.run_episode_train('y')
+
             train_end_time = time.time()
 
             # TODO: combine test_session_timeX and Y
@@ -75,19 +79,25 @@ class Experiment(object):
     # Runs a single episode (TRAIN)
     def run_episode_train(self, xory):
 
+        train_env = self.train_env[xory]
+        agent = self.agent[xory]
+
         test_session_time = 0.0
         episode_return = 0.
         episode_step_count = 0
 
         # TODO: reset rnn state
-        self.agent[xory].reset()  # Need to be careful in Agent not to reset the weight
+        agent.reset()  # Need to be careful in Agent not to reset the weight
 
         # TODO: Use track_idx to choose idx (only for test)
-        obs = self.train_env[xory].start(track_idx=None)
+        _, obs = train_env.start(selected_track_idx=None)
 
         force_terminated = False
+
+        episode_buffer = []
+
         # Episode is always fixed length
-        for i in range(0, self.train_env[xory].max_ep_length):
+        for i in range(0, train_env[xory].max_ep_length):
 
             if self.train_step_count == self.total_train_steps:
                 force_terminated = True
@@ -97,27 +107,37 @@ class Experiment(object):
             self.train_step_count += 1
             episode_step_count += 1
 
-            # Agent take action
+            # Agent start/step
             # first step
             if i == 0:
-                action = self.agent[xory].start(obs, is_train=True)
+                action = agent.start(obs, is_train=True)
 
             # also take action in last step, because we are manually truncating the episode
             else:
-                action = self.agent[xory].step(obs, is_train=True)
+                action = agent.step(obs, is_train=True)
 
-            # Env gives obs_n, reward
-            obs_n, reward, done, info = self.train_env[xory].step(action)
+            # Env step: gives next_state, next_obs
+            next_state, next_obs, done = train_env.step(action)
 
-            if self.train_step_count % self.agent_update_freq == 0:
-                self.agent[xory].update(obs, obs_n, float(reward), action, done)
+            # Agent predict
+            reward = agent.predict(next_obs, next_state)
+
+            # Agent update
+            if (self.train_step_count > self.agent_pre_train_steps) and \
+                    (self.train_step_count % self.agent_update_freq == 0):  # Also check if larger than pre train steps
+                agent.update()
+
+            episode_buffer.append(np.reshape(np.array([obs, action, reward, next_obs, False, next_state]), [1, 6]))
 
             episode_return += reward
-            obs = obs_n
+            obs = next_obs
 
             # Temporarily disabled
             # if self.train_step_count % self.test_interval == 0:
             #     test_session_time += self.test()
+
+        # save to ReplayBuffer
+        agent.replay_buffer.add(list(zip(np.array(episode_buffer))))
 
         return episode_return, episode_step_count, force_terminated, test_session_time
 

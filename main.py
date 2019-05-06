@@ -29,8 +29,8 @@ def main():
     test_env = SSenvReal(config, test_track_idx)
 
     # create agent
-    agentX = DAN(config)
-    agentY = DAN(config)
+    agentX = DAN(config, 'x')
+    agentY = DAN(config, 'y')
 
     # create experiment
     experiment = Experiment(train_env={'x': train_envX, 'y': train_envY}, test_env=test_env, agent={'x': agentX, 'y': agentY}, config=config)

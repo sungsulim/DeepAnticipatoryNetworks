@@ -2,7 +2,7 @@ import numpy as np
 
 
 class ExperienceBuffer:
-    def __init__(self, seed, buffer_size=20000):
+    def __init__(self, buffer_size, seed):
         self.rng = np.random.RandomState(seed)
         self.buffer = []
         self.buffer_size = buffer_size

@@ -11,6 +11,9 @@ class Config:
         self.test_ep_num = 1000
         self.test_interval = 16000  # every 1000 episodes
 
+        self.agent_pre_train_steps = 1600  # How many steps of random actions before training begins. 100 episodes
+        self.agent_update_freq = 2
+
         # env params
         self.max_ep_length = 16  # The max allowed length of our episode.
 
@@ -20,10 +23,9 @@ class Config:
         self.batch_size = 4
         self.trace_length = 4
 
-        self.agent_update_freq = 2
+
         # self.update_target_freq = 20
 
-        self.pre_train_steps = 1600  # How many steps of random actions before training begins. 100 episodes
         self.epsilon = 0.1
         self.gamma = 0.99
         self.tau = 0.001

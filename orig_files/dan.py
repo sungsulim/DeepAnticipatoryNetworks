@@ -11,7 +11,24 @@ import tensorflow.contrib.slim as slim
 
 import random
 
-
+#### Parameters
+# batch_size = 4  # How many experience traces to use for each training step.
+# trace_length = 4  # How long each experience trace will be when training
+# update_freq = 2   # How often to perform a training step.
+# update_target = 20
+# y = .99  # Discount factor on the target Q-values
+# startE = 1  # Starting chance of random action
+# endE = 0.1  # Final chance of random action
+# anneling_steps = 50000  # How many steps of training to reduce startE to endE.
+# num_episodes = 1000000  # How many episodes of game environment to train network with.
+# pre_train_steps = 5000  # How many steps of random actions before training begins.
+# load_model = False  # Whether to load a saved model.
+# path = "./drqn"  # The path to save our model to.
+# h_size = 512  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
+# max_epLength = 16  # The max allowed length of our episode.
+# time_per_step = 1  # Length of each step used in gif creation
+# summaryLength = 25  # Number of epidoes to periodically save for analysis
+# tau = 0.001
 
 
 def updateTargetGraph(tfVars,tau=0.9):
@@ -47,7 +64,7 @@ class SSenvReal:
         self.xory = xory
         self.max_epLength = 16
         self.track = self.getNewTrack()
-        self.state = self.get_next_state(self.track, self.k)
+        self.state = self.get_next_state(self.track, self.k) # get first state, but this is not used
         self.cc_by_sensors = self.get_covered_cells_by_sensors()
         self.obsmat = [0.96, 0.93, 0.91, 0.88, 0.85, 0.81, 0.78, 0.75, 0.72, 0.7]
 
@@ -333,7 +350,7 @@ def get_cover_reward(obs):
         r = 0
     return r
 
-
+# make obs into one-hot, and append a_one_hot (1,31)
 def format_obs(obs, nStates, a_onehot):
     obs_onehot = np.reshape(np.array([int(i == obs) for i in range(nStates)]), [1, nStates])
     fin_obs = np.reshape(np.append(obs_onehot, a_onehot), [1, inpSize])
@@ -365,13 +382,15 @@ def run_episode(sse, mainQN, mainMN, sess, xory):
         a, stateQx = get_Qaction(mainQN, stateQx, sess, prev_obsx)
         a_onehot = np.reshape(np.array([int(i == a) for i in range(sse.nActions)]), [1, sse.nActions])
 
+        # sse.index is not incrementing. Always index 0.
         ns = (sse.get_cell(sse.get_next_state(sse.track, sse.index)))
         ns_cell = sse.discretize_cell(ns)
         x_cell = ns_cell[0]
         y_cell = ns_cell[1]
+
         if xory == 'x':
             obsx = np.reshape(sse.get_obsX(ns, a), [1, 1])
-            curr_obsx = format_obs(obsx, sse.nStates, a_onehot)
+            curr_obsx = format_obs(obsx, sse.nStates, a_onehot)  # (1,31)
             prediction, stateMx = sess.run([mainMN.prediction, mainMN.rnn_state],
                                            feed_dict={mainMN.scalarInput: curr_obsx, mainMN.trainLength: 1,
                                                       mainMN.state_in: stateMx, mainMN.batch_size: 1})
