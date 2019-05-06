@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.io as sio
-import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import scipy.misc
@@ -12,24 +11,7 @@ import tensorflow.contrib.slim as slim
 
 import random
 
-#### Parameters
-batch_size = 4  # How many experience traces to use for each training step.
-trace_length = 4  # How long each experience trace will be when training
-update_freq = 2   # How often to perform a training step.
-update_target = 20
-y = .99  # Discount factor on the target Q-values
-startE = 1  # Starting chance of random action
-endE = 0.1  # Final chance of random action
-anneling_steps = 50000  # How many steps of training to reduce startE to endE.
-num_episodes = 1000000  # How many episodes of game environment to train network with.
-pre_train_steps = 5000  # How many steps of random actions before training begins.
-load_model = False  # Whether to load a saved model.
-path = "./drqn"  # The path to save our model to.
-h_size = 512  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
-max_epLength = 16  # The max allowed length of our episode.
-time_per_step = 1  # Length of each step used in gif creation
-summaryLength = 25  # Number of epidoes to periodically save for analysis
-tau = 0.001
+
 
 
 def updateTargetGraph(tfVars,tau=0.9):
