@@ -16,17 +16,19 @@ class DAN:
         self.batch_size = config.batch_size
         self.trace_length = config.trace_length
 
-        self.pre_train_steps = config.pre_train_steps
+        # self.pre_train_steps = config.pre_train_steps
         self.epsilon = config.epsilon
         self.gamma = config.gamma
         self.tau = config.tau
+        self.nActions = config.nActions
+        self.nStates = config.nStates
 
         self.replay_buffer = ExperienceBuffer(config.buffer_size, config.random_seed)
-        self.rnn_stateQ = None
-        self.rnn_stateM = None
 
         self.graph = tf.Graph()
 
+        self.qnet_current_rnn_state = None
+        self.mnet_current_rnn_state = None
         # create Network
         with self.graph.as_default():
             tf.set_random_seed(config.random_seed)
@@ -38,48 +40,77 @@ class DAN:
             self.qnet.init_target_network()
             self.mnet.init_target_network()
 
-    def reset(self):
-        # TODO: Why is this a tuple?
-        # reset rnn_state
-        self.qnet.reset_rnn_state()
-        self.mnet.reset_rnn_state()
-        # self.rnn_stateQ = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
-        # self.rnn_stateM = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
-
-    def start(self, raw_obs, is_train):
+    def start(self, raw_obs, is_pretraining, is_train):
         # obs: (1,31) np.zero observation
-        obs = self.process_obs(raw_obs)
+        obs = self.select_xy(raw_obs)
 
-        # get Q-val
-        self.qnet.get_qval(obs, self.)
-        # find greedy action
+        # reset qnet current rnn state
+        self.qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
 
-        # if is_train, do e-greedy
-        # else do greedy
+        greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
+        self.qnet_current_rnn_state = rnn_state
 
-        return
+        if is_train:
+            if is_pretraining or self.rng.rand() < self.epsilon:
+                # random action
+                action = self.rng.randint(0, self.nActions)
+            else:
+                action = greedy_action
 
-    def step(self, raw_obs, is_train):
+        return action
+
+    def step(self, raw_obs, is_pretraining, is_train):
         # obs: (1, 31)
-        obs = self.process_obs(raw_obs)
+        obs = self.select_xy(raw_obs)
 
-        return
+        greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
+        self.qnet_current_rnn_state = rnn_state
+
+        if is_train:
+            if is_pretraining or self.rng.rand() < self.epsilon:
+                # random action
+                action = self.rng.randint(0, self.nActions)
+            else:
+                # greedy action
+                action = greedy_action
+
+        return action
+
+    def predict(self, raw_obs, raw_state):
+        obs = self.select_xy(raw_obs)
+        state = self.select_xy(raw_state)
+
+        # TODO: outputs the raw values of last layer?
+        pred_state = self.mnet.predict(obs)
+
+        reward = self.get_prediction_reward(pred_state, state)
+
+        return reward
+
+    def get_prediction_reward(self, pred_s, true_s):
+        # true_s : 0~21
+        # pred_s : an array of size (21,) containing prediction values with highest being most probable
+        if np.argmax(pred_s) == true_s:
+            reward = 1.0
+        else:
+            reward = 0.0
+
+        return reward
 
     def update(self):
-        # add to replay buffer
+
+        # Get a random batch of experiences.
+        train_batch = self.replay_buffer.sample(self.batch_size, self.trace_length)
 
         # perform update
-
+        self.qnet.update(train_batch, self.trace_length, self.batch_size)
         return
 
-    def end(self, is_train):
-        raise NotImplementedError("This shouldn't be used. The environment never terminates for SSEnv")
-
-    def process_obs(self, obs):
+    def select_xy(self, xy_tuple):
         if self.xory == 'x':
-            return obs[0]
+            return xy_tuple[0]
         elif self.xory == 'y':
-            return obs[1]
+            return xy_tuple[1]
         else:
             return ValueError("Wrong value in self.xory")
 

@@ -18,23 +18,24 @@ class Config:
         self.max_ep_length = 16  # The max allowed length of our episode.
 
         # agent params
+        self.qnet_lr = 0.0001
+        self.mnet_lr = 0.0001
+
         self.h_size = 512  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
 
         self.batch_size = 4
         self.trace_length = 4
 
-
-        # self.update_target_freq = 20
-
         self.epsilon = 0.1
         self.gamma = 0.99
         self.tau = 0.001
 
+        self.nStates = 21
+        self.nActions = 10
+
         # self.startE = 1.0
         # self.endE = 0.1
         # self.annealing_steps = 50000
-
-
 
         # self.load_model = False  # Whether to load a saved model.
         # self.path = "./drqn"  # The path to save our model to.

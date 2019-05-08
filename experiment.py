@@ -19,7 +19,6 @@ class Experiment(object):
         self.agent_pre_train_steps = config.agent_pre_train_steps
         self.agent_update_freq = config.agent_update_freq
 
-
         # results
         self.train_return_per_episodeX = []
         self.train_return_per_episodeY = []
@@ -86,8 +85,8 @@ class Experiment(object):
         episode_return = 0.
         episode_step_count = 0
 
-        # TODO: reset rnn state
-        agent.reset()  # Need to be careful in Agent not to reset the weight
+        # TODO: reset rnn state. No, it should be reset at agent.start() and when starting training
+        # agent.reset()  # Need to be careful in Agent not to reset the weight
 
         # TODO: Use track_idx to choose idx (only for test)
         _, obs = train_env.start(selected_track_idx=None)
@@ -107,14 +106,16 @@ class Experiment(object):
             self.train_step_count += 1
             episode_step_count += 1
 
+            is_pretraining = (self.train_step_count <= self.agent_pre_train_steps)
+
             # Agent start/step
             # first step
             if i == 0:
-                action = agent.start(obs, is_train=True)
+                action = agent.start(obs, is_pretraining, is_train=True)
 
             # also take action in last step, because we are manually truncating the episode
             else:
-                action = agent.step(obs, is_train=True)
+                action = agent.step(obs, is_pretraining, is_train=True)
 
             # Env step: gives next_state, next_obs
             next_state, next_obs, done = train_env.step(action)
@@ -123,8 +124,8 @@ class Experiment(object):
             reward = agent.predict(next_obs, next_state)
 
             # Agent update
-            if (self.train_step_count > self.agent_pre_train_steps) and \
-                    (self.train_step_count % self.agent_update_freq == 0):  # Also check if larger than pre train steps
+            if (not is_pretraining) and \
+                    (self.train_step_count % self.agent_update_freq == 0):
                 agent.update()
 
             episode_buffer.append(np.reshape(np.array([obs, action, reward, next_obs, False, next_state]), [1, 6]))
