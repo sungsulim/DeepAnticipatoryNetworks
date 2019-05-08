@@ -7,11 +7,11 @@ class Config:
         self.random_seed = 0
 
         # experiment params
-        self.total_train_steps = 16000000  # 1 mil episode
+        self.total_train_steps = 16000  # 1000 episode
         self.test_ep_num = 1000
-        self.test_interval = 16000  # every 1000 episodes
+        self.test_interval = 1600  # every 100 episodes
 
-        self.agent_pre_train_steps = 1600  # How many steps of random actions before training begins. 100 episodes
+        self.agent_pre_train_steps = 1600  # 100 episodes
         self.agent_update_freq = 2
 
         # env params
@@ -23,11 +23,11 @@ class Config:
         self.qnet_lr = 0.0001
         self.mnet_lr = 0.0001
 
-        self.h_size = 512  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
+        self.h_size = 256  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
 
         self.batch_size = 4
         self.trace_length = 4
-        self.buffer_size = 1000000
+        self.buffer_size = 1000000  # 1mil episodes
 
         self.epsilon = 0.3
         self.gamma = 0.99

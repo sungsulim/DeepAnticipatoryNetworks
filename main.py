@@ -41,7 +41,8 @@ def main():
     train_return_per_episodeX, train_return_per_episodeY = train_return_per_episode
 
     # save results
-
+    np.array(train_return_per_episodeX).tofile("results/train_return_per_episodeX.txt", sep=',', format='%15.8f')
+    np.array(train_return_per_episodeY).tofile("results/train_return_per_episodeY.txt", sep=',', format='%15.8f')
 
 if __name__ == '__main__':
     main()
