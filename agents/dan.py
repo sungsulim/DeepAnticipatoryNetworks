@@ -38,14 +38,14 @@ class DAN:
 
             self.sess.run(tf.global_variables_initializer())
             self.qnet.init_target_network()
-            self.mnet.init_target_network()
 
     def start(self, raw_obs, is_pretraining, is_train):
         # obs: (1,31) np.zero observation
         obs = self.select_xy(raw_obs)
 
-        # reset qnet current rnn state
+        # reset qnet, mnet current rnn state
         self.qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
+        self.mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
 
         greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
         self.qnet_current_rnn_state = rnn_state
@@ -55,7 +55,7 @@ class DAN:
                 # random action
                 action = self.rng.randint(0, self.nActions)
             else:
-                action = greedy_action
+                action = greedy_action[0]
 
         return action
 
@@ -72,7 +72,7 @@ class DAN:
                 action = self.rng.randint(0, self.nActions)
             else:
                 # greedy action
-                action = greedy_action
+                action = greedy_action[0]
 
         return action
 
@@ -80,10 +80,10 @@ class DAN:
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)
 
-        # TODO: outputs the raw values of last layer?
-        pred_state = self.mnet.predict(obs)
+        prediction, rnn_state = self.mnet.get_prediction(obs, self.mnet_current_rnn_state)
+        self.mnet_current_rnn_state = rnn_state
 
-        reward = self.get_prediction_reward(pred_state, state)
+        reward = self.get_prediction_reward(prediction[0], state)
 
         return reward
 
@@ -102,8 +102,18 @@ class DAN:
         # Get a random batch of experiences.
         train_batch = self.replay_buffer.sample(self.batch_size, self.trace_length)
 
+        # Select x or y obs/next_obs, true_state
+        for i in range(len(train_batch)):
+            # obs
+            train_batch[i][0] = self.select_xy(train_batch[i][0])
+            # next_obs
+            train_batch[i][3] = self.select_xy(train_batch[i][3])
+            train_batch[i][5] = self.select_xy(train_batch[i][5])
+
         # perform update
         self.qnet.update(train_batch, self.trace_length, self.batch_size)
+        self.mnet.update(train_batch, self.trace_length, self.batch_size)
+
         return
 
     def select_xy(self, xy_tuple):

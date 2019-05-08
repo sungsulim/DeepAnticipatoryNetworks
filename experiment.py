@@ -96,7 +96,7 @@ class Experiment(object):
         episode_buffer = []
 
         # Episode is always fixed length
-        for i in range(0, train_env[xory].max_ep_length):
+        for i in range(0, train_env.max_ep_length):
 
             if self.train_step_count == self.total_train_steps:
                 force_terminated = True
@@ -117,6 +117,7 @@ class Experiment(object):
             else:
                 action = agent.step(obs, is_pretraining, is_train=True)
 
+            # print("train_step: {}, action: {}".format(self.train_step_count, action))
             # Env step: gives next_state, next_obs
             next_state, next_obs, done = train_env.step(action)
 

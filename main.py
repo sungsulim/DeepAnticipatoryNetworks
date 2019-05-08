@@ -5,6 +5,7 @@ from experiment import Experiment
 from environments.trackingEnv import SSenvReal
 from agents.dan import DAN
 
+
 def main():
 
     config = Config()
@@ -14,7 +15,7 @@ def main():
     dummy_env = SSenvReal(config, [])
 
     # split train/test tracks
-    track_idx = range(len(dummy_env.tracks))  # 0~16406
+    track_idx = list(range(len(dummy_env.tracks))) # 0~16406
     rng_state.shuffle(track_idx)
 
     train_track_idx = track_idx[config.test_ep_num:]

@@ -1,64 +1,101 @@
-
+import tensorflow as tf
+import numpy as np
 
 class Mnetwork:
-
-    def bias_variable(self, shape):
-        initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial)
-
-    def weight_variable(self, shape):
-        initial = tf.truncated_normal(shape, stddev=0.1)
-        return tf.Variable(initial)
-
-    # def __init__(self, h_size, nStates, nActions, rnn_cell, myScope):
     def __init__(self, sess, config):
-        # The network recieves a frame from the game, flattened into an array.
-        # It then resizes it and processes it through four convolutional layers.
-        self.inpSize = nStates + nActions
-        self.scalarInput = tf.placeholder(shape=[None, inpSize], dtype=tf.float32)
-        self.imageIn = tf.reshape(self.scalarInput, shape=[-1, 1, inpSize])
-        # self.actions = tf.placeholder(shape=[None],dtype=tf.int32)
-        # self.actions_onehot = tf.one_hot(self.actions,nStates,dtype=tf.float32)
-        # self.newScalarInput = tf.concat([self.scalarInput, self.actions_onehot],1)
-        with tf.variable_scope(myScope + "_fclayers"):
-            self.weight1 = self.weight_variable([inpSize, 40])
-            self.bias1 = self.bias_variable([40])
 
-            self.weight11 = self.weight_variable([40, 20])
-            self.bias11 = self.bias_variable([20])
+        self.sess = sess
 
-            self.weight2 = self.weight_variable([20, 10])
-            self.bias2 = self.bias_variable([10])
+        # before lstm
+        self.fc_size1 = 40
+        self.fc_size2 = 20
+        self.fc_size3 = 10
+        self.h_size = config.h_size
 
-            self.weight3 = self.weight_variable([10, h_size])
-            self.bias3 = self.bias_variable([h_size])
+        # after lstm
+        self.fc_size4 = 40
 
-            self.weight4 = self.weight_variable([h_size, 40])
-            self.bias4 = self.bias_variable([40])
+        self.learning_rate = config.mnet_lr
+        self.gamma = config.gamma
+        self.tau = config.tau
+        self.nStates = config.nStates  # 21
+        self.nActions = config.nActions  # 10
 
-            self.wfin = self.weight_variable([40, nStates])
-            self.bfin = self.bias_variable([nStates])
+        # create network
+        self.input_obs, self.input_rnn_state, self.current_rnn_state, \
+            self.batch_size, self.train_length, \
+            self.prediction = self.build_network(scope_name='mnet')
 
-        self.hstate1 = (tf.matmul(self.scalarInput, self.weight1) + self.bias1)
-        self.hstate11 = tf.matmul(self.hstate1, self.weight11) + self.bias11
-        self.hstate2 = tf.matmul(self.hstate11, self.weight2) + self.bias2
-        self.hstate3 = tf.matmul(self.hstate2, self.weight3) + self.bias3
+        self.net_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='mnet')
 
-        self.trainLength = tf.placeholder(dtype=tf.int32)
-        self.batch_size = tf.placeholder(dtype=tf.int32, shape=[])
-        self.convFlat = tf.reshape(slim.flatten(self.hstate3), [self.batch_size, self.trainLength, h_size])
-        self.state_in = rnn_cell.zero_state(self.batch_size, tf.float32)
-        self.rnn, self.rnn_state = tf.nn.dynamic_rnn(inputs=self.convFlat, cell=rnn_cell, dtype=tf.float32, initial_state=self.state_in, scope=myScope + '_rnn')
-        self.rnn = tf.reshape(self.rnn, shape=[-1, h_size])
+        self.target_prediction = tf.placeholder(shape=[None], dtype=tf.int32)
+        target_prediction_onehot = tf.one_hot(self.target_prediction, self.nStates, dtype=tf.float32)
 
-        self.prepred = tf.matmul(self.rnn, self.weight4) + self.bias4
-        self.prediction = tf.matmul(self.prepred, self.wfin) + self.bfin
-
-        # Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
-        self.targetP = tf.placeholder(shape=[None], dtype=tf.int32)
-        self.targetP_onehot = tf.one_hot(self.targetP, nStates, dtype=tf.float32)
         self.loss = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.targetP_onehot, logits=self.prediction))
+            tf.nn.softmax_cross_entropy_with_logits_v2(labels=target_prediction_onehot, logits=self.prediction))
+        self.updateModel = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
 
-        self.trainer = tf.train.AdamOptimizer(learning_rate=0.0001)
-        self.updateModel = self.trainer.minimize(self.loss)
+    def build_network(self, scope_name):
+        with tf.variable_scope(scope_name):
+
+            input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates))
+
+            # 4 fc layers (1 more layer than qnet)
+            net = tf.contrib.layers.fully_connected(input_obs, self.fc_size1, activation_fn=tf.nn.relu)
+            net = tf.contrib.layers.fully_connected(net, self.fc_size2, activation_fn=tf.nn.relu)
+            net = tf.contrib.layers.fully_connected(net, self.fc_size3, activation_fn=tf.nn.relu)
+            net = tf.contrib.layers.fully_connected(net, self.h_size, activation_fn=tf.nn.relu)
+
+            # lstm layer
+            batch_size = tf.placeholder(dtype=tf.int32, shape=[])
+            train_length = tf.placeholder(dtype=tf.int32)
+
+            # The input must be reshaped into [batch x trace x units] for rnn processing,
+            # and then returned to [batch x units] when sent through the upper levels.
+            net = tf.reshape(net, [batch_size, train_length, self.h_size])
+
+            lstm_cell = tf.nn.rnn_cell.LSTMCell(num_units=self.h_size, state_is_tuple=True)
+            input_rnn_state = lstm_cell.zero_state(batch_size, tf.float32)
+            net, current_rnn_state = tf.nn.dynamic_rnn(inputs=net, cell=lstm_cell, dtype=tf.float32, initial_state=input_rnn_state)
+            net = tf.reshape(net, shape=[-1, self.h_size])
+
+            net = tf.contrib.layers.fully_connected(net, self.fc_size4, activation_fn=tf.nn.relu)
+            prediction = tf.contrib.layers.fully_connected(net, self.nStates, activation_fn=None)
+            # prediction = tf.contrib.layers.fully_connected(net, self.nStates, activation_fn=tf.nn.softmax)
+
+        return input_obs, input_rnn_state, current_rnn_state, batch_size, train_length, prediction
+
+    def get_prediction(self, obs, input_rnn_state):
+
+        train_length = 1
+        batch_size = 1
+
+        prediction, rnn_state = self.sess.run([self.prediction, self.current_rnn_state], feed_dict={
+            self.input_obs: obs,
+            self.input_rnn_state: input_rnn_state,
+            self.train_length: train_length,
+            self.batch_size: batch_size
+        })
+
+        return prediction, rnn_state
+
+    def update(self, train_batch, trace_length, batch_size):
+        # trace_length : 4
+        # batch_size : 4
+
+        state_train = (np.zeros([batch_size, self.h_size]), np.zeros([batch_size, self.h_size]))
+
+        # obs_batch = train_batch[:, 0]
+        # action_batch = train_batch[:, 1]
+        # reward_batch = train_batch[:, 2]
+        next_obs_batch = train_batch[:, 3]
+        # termination_batch = train_batch[:, 4]
+        true_state_batch = train_batch[:, 5]
+
+        self.sess.run(self.updateModel, feed_dict={
+            self.input_obs: np.vstack(next_obs_batch),
+            self.input_rnn_state: state_train,
+            self.target_prediction: true_state_batch,
+            self.train_length: trace_length,
+            self.batch_size: batch_size})
+

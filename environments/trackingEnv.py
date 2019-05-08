@@ -89,6 +89,7 @@ class SSenvReal:
     # previously get_obs
     def get_next_obs(self, xy_coord, action):
 
+        # print(xy_coord, action)
         cc_by_s = self.cc_by_sensors[action]
 
         if xy_coord in cc_by_s:

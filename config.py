@@ -16,6 +16,8 @@ class Config:
 
         # env params
         self.max_ep_length = 16  # The max allowed length of our episode.
+        self.nStates = 21
+        self.nActions = 10
 
         # agent params
         self.qnet_lr = 0.0001
@@ -25,13 +27,11 @@ class Config:
 
         self.batch_size = 4
         self.trace_length = 4
+        self.buffer_size = 1000000
 
-        self.epsilon = 0.1
+        self.epsilon = 0.3
         self.gamma = 0.99
         self.tau = 0.001
-
-        self.nStates = 21
-        self.nActions = 10
 
         # self.startE = 1.0
         # self.endE = 0.1

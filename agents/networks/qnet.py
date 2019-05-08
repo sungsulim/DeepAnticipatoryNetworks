@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
+
 class Qnetwork:
     def __init__(self, sess, config):
 
@@ -59,7 +60,6 @@ class Qnetwork:
 
     def build_network(self, scope_name):
         with tf.variable_scope(scope_name):
-            lstm_cell = tf.nn.rnn_cell.LSTMCell(num_units=self.h_size, state_is_tuple=True)
 
             input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates))
 
@@ -79,8 +79,10 @@ class Qnetwork:
             # and then returned to [batch x units] when sent through the upper levels.
             net = tf.reshape(net, [batch_size, train_length, self.h_size])
 
+            lstm_cell = tf.nn.rnn_cell.LSTMCell(num_units=self.h_size, state_is_tuple=True)
+
             input_rnn_state = lstm_cell.zero_state(batch_size, tf.float32)
-            net, current_rnn_state = tf.keras.layers.RNN(inputs=net, cell=lstm_cell, dtype=tf.float32, initial_state=input_rnn_state)
+            net, current_rnn_state = tf.nn.dynamic_rnn(inputs=net, cell=lstm_cell, dtype=tf.float32, initial_state=input_rnn_state)
             net = tf.reshape(net, shape=[-1, self.h_size])
 
             # The output from the recurrent player is then split into separate Value and Advantage streams
@@ -89,7 +91,8 @@ class Qnetwork:
             Advantage = tf.contrib.layers.fully_connected(streamA, self.nActions, activation_fn=None, biases_initializer=None)
             Value = tf.contrib.layers.fully_connected(streamV, 1, activation_fn=None, biases_initializer=None)
 
-            salience = tf.gradients(Advantage, self.input_obs)
+            # Salience is not used
+            salience = tf.gradients(Advantage, input_obs)
             # Then combine them together to get our final Q-values.
             Qout = Value + tf.subtract(Advantage, tf.reduce_mean(Advantage, axis=1, keepdims=True))
             argmaxQ = tf.argmax(Qout, axis=1)
@@ -116,7 +119,7 @@ class Qnetwork:
             self.input_obs: obs,
             self.input_rnn_state: input_rnn_state,
             self.train_length: train_length,
-            self.batch_size : batch_size
+            self.batch_size: batch_size
         })
 
         return action, rnn_state
