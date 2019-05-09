@@ -12,29 +12,43 @@ def main():
     rng_state = np.random.RandomState(config.random_seed)
 
     # create environment
-    dummy_env = SSenvReal(config, [])
+    dummy_envX = SSenvReal(config, 'data/sampled_tracksX', [])
+    dummy_envY = SSenvReal(config, 'data/sampled_tracksY', [])
 
     # split train/test tracks
-    track_idx = list(range(len(dummy_env.tracks))) # 0~16406
-    rng_state.shuffle(track_idx)
+    trackX_idx = list(range(len(dummy_envX.tracks)))  # 0~16406
+    trackY_idx = list(range(len(dummy_envY.tracks)))  # 0~12825
 
-    train_track_idx = track_idx[config.test_ep_num:]
-    test_track_idx = track_idx[:config.test_ep_num]
+    rng_state.shuffle(trackX_idx)
+    rng_state.shuffle(trackY_idx)
 
-    print("train track num: {}".format(len(train_track_idx)))  # 15407
-    print("test track num: {}".format(len(test_track_idx)))  # 1000
+    train_trackX_idx = trackX_idx[config.test_ep_num:]
+    test_trackX_idx = trackX_idx[:config.test_ep_num]
 
-    train_envX = SSenvReal(config, train_track_idx)
-    train_envY = SSenvReal(config, train_track_idx)
+    train_trackY_idx = trackY_idx[config.test_ep_num:]
+    test_trackY_idx = trackY_idx[:config.test_ep_num]
 
-    test_env = SSenvReal(config, test_track_idx)
+    print("train track X num: {}".format(len(train_trackX_idx)))  # 15907
+    print("test track X num: {}".format(len(test_trackX_idx)))  # 500
+
+    print("train track Y num: {}".format(len(train_trackY_idx)))  # 12326
+    print("test track Y num: {}".format(len(test_trackY_idx)))  # 500
+
+    train_envX = SSenvReal(config, 'data/sampled_tracksX', train_trackX_idx)
+    train_envY = SSenvReal(config, 'data/sampled_tracksY', train_trackY_idx)
+
+    test_envX = SSenvReal(config, 'data/sampled_tracksX', test_trackX_idx)
+    test_envY = SSenvReal(config, 'data/sampled_tracksY', test_trackY_idx)
 
     # create agent
     agentX = DAN(config, 'x')
     agentY = DAN(config, 'y')
 
     # create experiment
-    experiment = Experiment(train_env={'x': train_envX, 'y': train_envY}, test_env=test_env, agent={'x': agentX, 'y': agentY}, config=config)
+    experiment = Experiment(train_env={'x': train_envX, 'y': train_envY},
+                            test_env={'x': test_envX, 'y': test_envY},
+                            agent={'x': agentX, 'y': agentY},
+                            config=config)
 
     # run experiment
     train_return_per_episode, test_mean_return_per_episode, test_std_return_per_episode = experiment.run()

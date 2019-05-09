@@ -8,6 +8,8 @@ from agents.networks.mnet import Mnetwork
 class DAN:
     def __init__(self, config, xory):
 
+        self.agent_type = config.agent_type  # 'normal', 'randomAction', 'coverage'
+
         # 'x' or 'y'
         self.xory = xory
 
@@ -29,6 +31,7 @@ class DAN:
 
         self.qnet_current_rnn_state = None
         self.mnet_current_rnn_state = None
+
         # create Network
         with self.graph.as_default():
             tf.set_random_seed(config.random_seed)
@@ -51,11 +54,19 @@ class DAN:
         self.qnet_current_rnn_state = rnn_state
 
         if is_train:
-            if is_pretraining or self.rng.rand() < self.epsilon:
-                # random action
+
+            if self.agent_type == 'normal' or self.agent_type == 'coverage':
+                if is_pretraining or self.rng.rand() < self.epsilon:
+                    # random action
+                    action = self.rng.randint(0, self.nActions)
+                else:
+                    action = greedy_action[0]
+
+            elif self.agent_type == 'randomAction':
                 action = self.rng.randint(0, self.nActions)
+
             else:
-                action = greedy_action[0]
+                raise ValueError("Invalid self.agent_type")
 
         return action
 
@@ -67,34 +78,60 @@ class DAN:
         self.qnet_current_rnn_state = rnn_state
 
         if is_train:
-            if is_pretraining or self.rng.rand() < self.epsilon:
-                # random action
+
+            if self.agent_type == 'normal' or self.agent_type == 'coverage':
+                if is_pretraining or self.rng.rand() < self.epsilon:
+                    # random action
+                    action = self.rng.randint(0, self.nActions)
+                else:
+                    # greedy action
+                    action = greedy_action[0]
+
+            elif self.agent_type == 'randomAction':
                 action = self.rng.randint(0, self.nActions)
+
             else:
-                # greedy action
-                action = greedy_action[0]
+                raise ValueError("Invalid self.agent_type")
 
         return action
 
     def predict(self, raw_obs, raw_state):
+        print("raw_obs", raw_obs)
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)
 
         prediction, rnn_state = self.mnet.get_prediction(obs, self.mnet_current_rnn_state)
         self.mnet_current_rnn_state = rnn_state
 
-        reward = self.get_prediction_reward(prediction[0], state)
+        if self.agent_type == 'normal' or self.agent_type == 'randomAction':
+            reward = self.get_prediction_reward(prediction[0], state)
+
+        elif self.agent_type == 'coverage':
+            reward = self.get_coverage_reward(obs)
+
+        else:
+            raise ValueError("Invalid self.agent_type")
 
         return reward
 
     def get_prediction_reward(self, pred_s, true_s):
-        # true_s : 0~21
+        # true_s : 0~20
         # pred_s : an array of size (21,) containing prediction values with highest being most probable
         if np.argmax(pred_s) == true_s:
             reward = 1.0
         else:
             reward = 0.0
 
+        return reward
+
+    def get_coverage_reward(self, obs):
+        # obs is one-hot-vector
+        obs_val = np.where(obs[0] == 1)[0][0]
+
+        if obs_val < self.nStates - 1:
+            reward = 1.0
+        else:
+            reward = 0.0
         return reward
 
     def update(self):

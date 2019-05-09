@@ -5,10 +5,11 @@ class Config:
         # self.parser = argparse.ArgumentParser()
 
         self.random_seed = 0
+        self.agent_type = 'normal'  # 'normal', 'randomAction', 'coverage'
 
         # experiment params
-        self.total_train_steps = 16000  # 1000 episode
-        self.test_ep_num = 1000
+        self.total_train_steps = 80000  # 5000 episode
+        self.test_ep_num = 500
         self.test_interval = 1600  # every 100 episodes
 
         self.agent_pre_train_steps = 1600  # 100 episodes
@@ -29,7 +30,7 @@ class Config:
         self.trace_length = 4
         self.buffer_size = 1000000  # 1mil episodes
 
-        self.epsilon = 0.3
+        self.epsilon = 0.1
         self.gamma = 0.99
         self.tau = 0.001
 

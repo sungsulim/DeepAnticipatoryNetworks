@@ -5,7 +5,7 @@ import pickle as pk
 
 class SSenvReal:
 
-    def __init__(self, config, idx_arr):
+    def __init__(self, config, file_loc, idx_arr):
 
         self.rng = np.random.RandomState(config.random_seed)
 
@@ -15,7 +15,7 @@ class SSenvReal:
 
         self.max_ep_length = config.max_ep_length  # 16
 
-        self.tracks = pk.load(open('data/sampled_tracksX', 'rb'))
+        self.tracks = pk.load(open(file_loc, 'rb'))
 
         # sets idx to be chosen from. (For train/test split)
         self.track_idx = idx_arr
@@ -61,8 +61,10 @@ class SSenvReal:
         next_obs = self.get_next_obs(next_state_coord, action)  # (2,1)
 
         # process into one-hot-vector of (1,31)
+        print('next_obs in env', next_obs)
         next_obs_one_hotX = self.format_one_hot(next_obs[0])
         next_obs_one_hotY = self.format_one_hot(next_obs[1])
+        print('onehot shape', np.shape(next_obs_one_hotX), np.shape(next_obs_one_hotY))
 
         done = False
 
@@ -83,8 +85,8 @@ class SSenvReal:
         if idx < len(track[0]):
             return [track[0][idx], track[1][idx]]
         else:
-            # TODO: Temp. method of setting the discretized cell to be 21.
-            return [110, 110]  # [21, 21] : manually selecting out-of-range xy_coord
+            # TODO: Temp. method of setting the discretized cell to be 20.
+            return [100, 100]  # [20, 20] : manually selecting out-of-range xy_coord
 
     # previously get_obs
     def get_next_obs(self, xy_coord, action):
@@ -96,7 +98,7 @@ class SSenvReal:
             xy_cell = self.discretize_cell(xy_coord)
             return xy_cell
         else:
-            return [21, 21]
+            return [20, 20]
 
     # previously get_cell()
     def process_coords(self, xypoint):

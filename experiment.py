@@ -25,7 +25,7 @@ class Experiment(object):
         self.test_mean_return_per_episode = []
         self.test_std_return_per_episode = []
 
-        self.train_step_count = 0
+        self.train_step_count = {'x': 0, 'y': 0}
         self.cum_train_time = 0.0
         self.cum_test_time = 0.0
 
@@ -41,7 +41,7 @@ class Experiment(object):
         # test once at beginning
         # self.cum_test_time += self.test()
 
-        while self.train_step_count < self.total_train_steps:
+        while self.train_step_count['x'] + self.train_step_count['y'] < self.total_train_steps:
 
             # runs a single episode and returns the accumulated return for that episode
             train_start_time = time.time()
@@ -56,7 +56,6 @@ class Experiment(object):
 
             self.cum_train_time += train_ep_time
             self.cum_test_time += test_session_time
-            # print("Train:: ep: " + str(episode_count) + ", returnX: " + str(episode_returnX) + ", n_steps: " + str(num_steps) + ", elapsed: " + time.strftime("%H:%M:%S", time.gmtime(train_ep_time)))
             print("Train:: ep: {}, returnX: {}, returnY: {}, stepsX: {}, stepsY: {},  elapsed: {}".format(episode_count, episode_returnX, episode_returnY, num_stepsX, num_stepsY, time.strftime("%H:%M:%S", time.gmtime(train_ep_time))))
 
             # force_terminated if total_train_steps reached and episode is truncated
@@ -91,6 +90,7 @@ class Experiment(object):
         # TODO: Use track_idx to choose idx (only for test)
         _, obs = train_env.start(selected_track_idx=None)
 
+        # print("env_start", obs)
         force_terminated = False
 
         episode_buffer = []
@@ -98,15 +98,15 @@ class Experiment(object):
         # Episode is always fixed length
         for i in range(0, train_env.max_ep_length):
 
-            if self.train_step_count == self.total_train_steps:
+            if self.train_step_count[xory] == self.total_train_steps:
                 force_terminated = True
                 print("force terminated during training. This shouldn't normally happen")
                 break
 
-            self.train_step_count += 1
+            self.train_step_count[xory] += 1
             episode_step_count += 1
 
-            is_pretraining = (self.train_step_count <= self.agent_pre_train_steps)
+            is_pretraining = (self.train_step_count[xory] <= self.agent_pre_train_steps)
 
             # Agent start/step
             # first step
@@ -117,16 +117,17 @@ class Experiment(object):
             else:
                 action = agent.step(obs, is_pretraining, is_train=True)
 
-            # print("train_step: {}, action: {}".format(self.train_step_count, action))
+            # print("train_step: {}, action: {}".format(self.train_step_count[xory, action))
             # Env step: gives next_state, next_obs
             next_state, next_obs, done = train_env.step(action)
+            # print("env_step (state, obs)", next_state, next_obs)
 
             # Agent predict
             reward = agent.predict(next_obs, next_state)
 
             # Agent update
             if (not is_pretraining) and \
-                    (self.train_step_count % self.agent_update_freq == 0):
+                    (self.train_step_count[xory] % self.agent_update_freq == 0):
                 agent.update()
 
             episode_buffer.append(np.reshape(np.array([obs, action, reward, next_obs, False, next_state]), [1, 6]))
@@ -135,7 +136,7 @@ class Experiment(object):
             obs = next_obs
 
             # Temporarily disabled
-            # if self.train_step_count % self.test_interval == 0:
+            # if self.train_step_count[xory] % self.test_interval == 0:
             #     test_session_time += self.test()
 
         # save to ReplayBuffer
@@ -176,23 +177,28 @@ class Experiment(object):
         self.agent.reset()
         obs = self.test_env.start(track_idx=track_idx)
 
+        is_pretraining = False
+
         for i in range(0, self.test_env.max_ep_length):
             episode_step_count += 1
 
             # Agent take action
             # first step
             if i == 0:
-                action = self.agent.start(obs, is_train=False)
+                action = self.agent.start(obs, is_pretraining, is_train=False)
 
             # also take action in last step, because we are manually truncating the episode
             else:
-                action = self.agent.step(obs, is_train=False)
+                action = self.agent.step(obs, is_pretraining, is_train=False)
 
             # Env gives obs_n, reward
-            obs_n, reward, done, info = self.test_env.step(action)
+            next_state, next_obs, done = self.test_env.step(action)
+
+            # Agent predict
+            reward = self.agent.predict(next_obs, next_state)
 
             episode_return += reward
-            obs = obs_n
+            obs = next_obs
 
         return episode_return, episode_step_count
 
