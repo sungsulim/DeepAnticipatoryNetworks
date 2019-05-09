@@ -61,10 +61,10 @@ class SSenvReal:
         next_obs = self.get_next_obs(next_state_coord, action)  # (2,1)
 
         # process into one-hot-vector of (1,31)
-        print('next_obs in env', next_obs)
+        # print('next_obs in env', next_obs)
         next_obs_one_hotX = self.format_one_hot(next_obs[0])
         next_obs_one_hotY = self.format_one_hot(next_obs[1])
-        print('onehot shape', np.shape(next_obs_one_hotX), np.shape(next_obs_one_hotY))
+        # print('onehot shape', np.shape(next_obs_one_hotX), np.shape(next_obs_one_hotY))
 
         done = False
 

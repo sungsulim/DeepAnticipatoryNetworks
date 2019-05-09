@@ -96,7 +96,7 @@ class DAN:
         return action
 
     def predict(self, raw_obs, raw_state):
-        print("raw_obs", raw_obs)
+        # print("raw_obs", raw_obs)
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)
 
@@ -148,8 +148,11 @@ class DAN:
             train_batch[i][5] = self.select_xy(train_batch[i][5])
 
         # perform update
-        self.qnet.update(train_batch, self.trace_length, self.batch_size)
-        self.mnet.update(train_batch, self.trace_length, self.batch_size)
+        if self.agent_type == 'normal' or self.agent_type == 'coverage':
+            self.qnet.update(train_batch, self.trace_length, self.batch_size)
+
+        if self.agent_type == 'normal' or self.agent_type == 'randomAction':
+            self.mnet.update(train_batch, self.trace_length, self.batch_size)
 
         return
 
