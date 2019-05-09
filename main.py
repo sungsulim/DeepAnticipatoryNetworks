@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 
 from config import Config
 from experiment import Experiment
@@ -7,8 +8,19 @@ from agents.dan import DAN
 
 
 def main():
+    # parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--agent_type', type=str)
+    parser.add_argument('--random_seed', type=str)
+    args = parser.parse_args()
+    arg_params = {
+        "agent_type": args.agent_type,
+        "random_seed": int(args.random_seed)
+    }
 
     config = Config()
+    config.merge_config(arg_params)
+
     rng_state = np.random.RandomState(config.random_seed)
 
     # create environment

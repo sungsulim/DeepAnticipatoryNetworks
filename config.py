@@ -2,10 +2,10 @@ class Config:
 
     # default setting
     def __init__(self):
-        # self.parser = argparse.ArgumentParser()
 
-        self.random_seed = 0
-        self.agent_type = 'normal'  # 'normal', 'randomAction', 'coverage'
+        # set by command line args
+        self.agent_type = None  # 'normal', 'randomAction', 'coverage'
+        self.random_seed = None
 
         # experiment params
         self.total_train_steps = 80000  # 5000 episode
