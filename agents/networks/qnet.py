@@ -61,7 +61,7 @@ class Qnetwork:
     def build_network(self, scope_name):
         with tf.variable_scope(scope_name):
 
-            input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates))
+            input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates + self.nActions))
 
             # 3 fc layers
             net = tf.contrib.layers.fully_connected(input_obs, self.fc_size1, activation_fn=tf.nn.relu)

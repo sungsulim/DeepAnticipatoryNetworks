@@ -84,11 +84,11 @@ class Experiment(object):
         episode_return = 0.
         episode_step_count = 0
 
-        # TODO: reset rnn state. No, it should be reset at agent.start() and when starting training
-        # agent.reset()  # Need to be careful in Agent not to reset the weight
-
-        # TODO: Use track_idx to choose idx (only for test)
+        # TODO: Augment obs
         _, obs = train_env.start(selected_track_idx=None)
+        action_one_hot = np.zeros((1, agent.nActions))
+
+        obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in obs])
 
         # print("env_start", obs)
         force_terminated = False
@@ -117,10 +117,12 @@ class Experiment(object):
             else:
                 action = agent.step(obs, is_pretraining, is_train=True)
 
-            # print("train_step: {}, action: {}".format(self.train_step_count[xory, action))
             # Env step: gives next_state, next_obs
             next_state, next_obs, done = train_env.step(action)
-            # print("env_step (state, obs)", next_state, next_obs)
+
+            # Augment next_obs
+            action_one_hot = np.reshape(np.array([int(i == action) for i in range(agent.nActions)]), (1, agent.nActions))
+            next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
 
             # Agent predict
             reward = agent.predict(next_obs, next_state)
@@ -130,6 +132,7 @@ class Experiment(object):
                     (self.train_step_count[xory] % self.agent_update_freq == 0):
                 agent.update()
 
+            # TODO: Check saving augmented obs
             episode_buffer.append(np.reshape(np.array([obs, action, reward, next_obs, False, next_state]), [1, 6]))
 
             episode_return += reward

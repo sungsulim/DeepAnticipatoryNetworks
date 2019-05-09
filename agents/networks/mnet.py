@@ -38,7 +38,7 @@ class Mnetwork:
     def build_network(self, scope_name):
         with tf.variable_scope(scope_name):
 
-            input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates))
+            input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates + self.nActions))
 
             # 4 fc layers (1 more layer than qnet)
             net = tf.contrib.layers.fully_connected(input_obs, self.fc_size1, activation_fn=tf.nn.relu)

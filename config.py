@@ -8,7 +8,7 @@ class Config:
         self.random_seed = None
 
         # experiment params
-        self.total_train_steps = 80000  # 5000 episode
+        self.total_train_steps = 160000  # 5000 episode
         self.test_ep_num = 500
         self.test_interval = 1600  # every 100 episodes
 
