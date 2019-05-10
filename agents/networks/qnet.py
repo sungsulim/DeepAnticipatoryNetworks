@@ -121,8 +121,7 @@ class Qnetwork:
             self.train_length: train_length,
             self.batch_size: batch_size
         })
-        # print(Qval)
-        # input()
+        # print('Qval', Qval)
 
         return action, rnn_state
 

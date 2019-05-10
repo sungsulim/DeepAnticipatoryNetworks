@@ -7,33 +7,30 @@ class Config:
         self.agent_type = None  # 'normal', 'randomAction', 'coverage'
         self.random_seed = None
 
-        # experiment params
-        self.total_train_steps = 160000  # 5000 episode
-        self.test_ep_num = 500
-        self.test_interval = 1600  # every 100 episodes
-
-        self.agent_pre_train_steps = 1600  # 100 episodes
-        self.agent_update_freq = 4
-
         # env params
         self.max_ep_length = 12  # The max allowed length of our episode.
-        self.nStates = 21
-        self.nActions = 10
+        self.batch_size = 8
+        self.trace_length = 8
 
         # agent params
+        self.epsilon = 0.1
         self.qnet_lr = 0.0001
         self.mnet_lr = 0.0001
-
+        self.agent_update_freq = 4
         self.h_size = 128  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
 
-        self.batch_size = 16
-        self.trace_length = 8
+        self.total_train_steps = 96000  # 3000 episode
+        self.test_ep_num = 500
+        self.test_interval = 1600  # every 100 episodes
+        self.agent_pre_train_steps = 1600  # 100 episodes
+
         self.buffer_size = 1000000  # 1mil episodes
 
-        self.epsilon = 0.1
         self.gamma = 0.99
         self.tau = 0.001
 
+        self.nStates = 21
+        self.nActions = 10
         self.print_ep_freq = 10
 
         # self.startE = 1.0

@@ -50,9 +50,15 @@ class DAN:
         self.qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
         self.mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
 
+        # print("###########")
+        # print("agent start rnn_state", self.qnet_current_rnn_state)
+        # print()
         greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
         self.qnet_current_rnn_state = rnn_state
-
+        # print()
+        # print("agent start after greedy action rnn_state", self.qnet_current_rnn_state)
+        # input()
+        # print("###########")
         if is_train:
 
             if self.agent_type == 'normal' or self.agent_type == 'coverage':
@@ -74,9 +80,15 @@ class DAN:
         # obs: (1, 31)
         obs = self.select_xy(raw_obs)
 
+        # print("###########")
+        # print("agent step rnn_state", self.qnet_current_rnn_state)
+        # print()
         greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
         self.qnet_current_rnn_state = rnn_state
-
+        # print()
+        # print("agent step after greedy action rnn_state", self.qnet_current_rnn_state)
+        # print("###########")
+        # input()
         if is_train:
 
             if self.agent_type == 'normal' or self.agent_type == 'coverage':

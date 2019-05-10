@@ -1,6 +1,6 @@
 import numpy as np
 import argparse
-
+import os
 from config import Config
 from experiment import Experiment
 from environments.trackingEnv import SSenvReal
@@ -12,6 +12,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--agent_type', type=str)
     parser.add_argument('--random_seed', type=str)
+    parser.add_argument('--result_dir', type=str)
     args = parser.parse_args()
     arg_params = {
         "agent_type": args.agent_type,
@@ -20,6 +21,17 @@ def main():
 
     config = Config()
     config.merge_config(arg_params)
+
+    # save results
+    save_dir = 'results/{}'.format(args.result_dir)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    config_string = ""
+    for key in config.__dict__:
+        config_string += '{}: {}\n'.format(key, config.__getattribute__(key))
+    with open("{}/Experiment_Params.txt".format(save_dir), "w") as config_file:
+        config_file.write(config_string)
 
     rng_state = np.random.RandomState(config.random_seed)
 
@@ -82,9 +94,14 @@ def main():
     train_return_per_episode, test_mean_return_per_episode, test_std_return_per_episode = experiment.run()
     train_return_per_episodeX, train_return_per_episodeY = train_return_per_episode
 
-    # save results
-    np.array(train_return_per_episodeX).tofile("results/{}_{}_train_return_per_episodeX.txt".format(config.agent_type, config.random_seed), sep=',', format='%15.8f')
-    np.array(train_return_per_episodeY).tofile("results/{}_{}_train_return_per_episodeY.txt".format(config.agent_type, config.random_seed), sep=',', format='%15.8f')
+    np.array(train_return_per_episodeX).tofile("{}/{}_{}_train_return_per_episodeX.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
+    np.array(train_return_per_episodeY).tofile("{}/{}_{}_train_return_per_episodeY.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
+
+    config_string = ""
+    for key in config.__dict__:
+        config_string += '{}: {}\n'.format(key, config.__getattribute__(key))
+    with open("{}/Experiment_Params.txt".format(save_dir), "w") as config_file:
+        config_file.write(config_string)
 
 
 if __name__ == '__main__':
