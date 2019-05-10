@@ -129,8 +129,8 @@ class SSenvReal:
         for i in range(10):
             covered_cells_by_sensors[i] = cell_info[0][i][0].tolist()
 
-        # for i in range(10):
-        #     covered_cells_by_sensors[i].extend(cell_info[0][i + 10][0].tolist())
+        for i in range(10):
+            covered_cells_by_sensors[i].extend(cell_info[0][i + 10][0].tolist())
 
         return covered_cells_by_sensors
 
