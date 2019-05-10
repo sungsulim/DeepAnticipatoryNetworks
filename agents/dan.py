@@ -156,11 +156,16 @@ class DAN:
 
         # Select x or y obs/next_obs, true_state
         for i in range(len(train_batch)):
+            # reward
+            train_batch[i][2] = self.predict(train_batch[i][3], train_batch[i][5])
+
             # obs
             train_batch[i][0] = self.select_xy(train_batch[i][0])
             # next_obs
             train_batch[i][3] = self.select_xy(train_batch[i][3])
             train_batch[i][5] = self.select_xy(train_batch[i][5])
+
+
 
         # perform update
         if self.agent_type == 'normal' or self.agent_type == 'coverage':
