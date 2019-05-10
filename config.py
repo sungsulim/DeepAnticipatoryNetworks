@@ -8,6 +8,9 @@ class Config:
         self.random_seed = None
 
         # env params
+        self.total_train_steps = 36000  # 3000 episode
+        self.agent_pre_train_steps = 1200  # 100 episodes
+
         self.max_ep_length = 12  # The max allowed length of our episode.
         self.batch_size = 8
         self.trace_length = 8
@@ -19,10 +22,10 @@ class Config:
         self.agent_update_freq = 4
         self.h_size = 128  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
 
-        self.total_train_steps = 96000  # 3000 episode
+
         self.test_ep_num = 500
         self.test_interval = 1600  # every 100 episodes
-        self.agent_pre_train_steps = 1600  # 100 episodes
+
 
         self.buffer_size = 1000000  # 1mil episodes
 
