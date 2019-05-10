@@ -115,12 +115,14 @@ class Qnetwork:
         train_length = 1
         batch_size = 1
 
-        action, rnn_state = self.sess.run([self.argmaxQ, self.current_rnn_state], feed_dict={
+        action, rnn_state, Qval = self.sess.run([self.argmaxQ, self.current_rnn_state, self.Qout], feed_dict={
             self.input_obs: obs,
             self.input_rnn_state: input_rnn_state,
             self.train_length: train_length,
             self.batch_size: batch_size
         })
+        # print(Qval)
+        # input()
 
         return action, rnn_state
 
