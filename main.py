@@ -27,10 +27,26 @@ def main():
     dummy_envX = SSenvReal(config, 'data/sampled_tracksX', [])
     dummy_envY = SSenvReal(config, 'data/sampled_tracksY', [])
 
-    # split train/test tracks
-    trackX_idx = list(range(len(dummy_envX.tracks)))  # 0~16406
-    trackY_idx = list(range(len(dummy_envY.tracks)))  # 0~12825
 
+
+    # Remove short tracks
+    # X < 32: 4736
+    # Y < 32: 3311
+    trackX_idx = []
+    trackY_idx = []
+
+    cutoff = config.max_ep_length
+    for i in range(len(dummy_envX.tracks)):
+        if len(dummy_envX.tracks[i][0]) >= cutoff:
+            trackX_idx.append(i)
+
+    for j in range(len(dummy_envY.tracks)):
+        if len(dummy_envY.tracks[j][1]) >= cutoff:
+            trackY_idx.append(j)
+
+    # split train/test tracks
+    # trackX_idx = list(range(len(dummy_envX.tracks)))  # 0~16406
+    # trackY_idx = list(range(len(dummy_envY.tracks)))  # 0~12825
     rng_state.shuffle(trackX_idx)
     rng_state.shuffle(trackY_idx)
 

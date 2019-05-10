@@ -103,6 +103,9 @@ class DAN:
         prediction, rnn_state = self.mnet.get_prediction(obs, self.mnet_current_rnn_state)
         self.mnet_current_rnn_state = rnn_state
 
+        # print('agent_prediction', np.shape(prediction), prediction)
+        # print("argmax_prediction", np.argmax(prediction))
+
         if self.agent_type == 'normal' or self.agent_type == 'randomAction':
             reward = self.get_prediction_reward(prediction[0], state)
 

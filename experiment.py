@@ -18,6 +18,7 @@ class Experiment(object):
 
         self.agent_pre_train_steps = config.agent_pre_train_steps
         self.agent_update_freq = config.agent_update_freq
+        self.print_ep_freq = config.print_ep_freq
 
         # results
         self.train_return_per_episodeX = []
@@ -45,7 +46,10 @@ class Experiment(object):
 
             # runs a single episode and returns the accumulated return for that episode
             train_start_time = time.time()
+            # print('running episode x')
             episode_returnX, num_stepsX, force_terminatedX, test_session_timeX = self.run_episode_train('x')
+
+            # print('running episode y')
             episode_returnY, num_stepsY, force_terminatedY, test_session_timeY = self.run_episode_train('y')
 
             train_end_time = time.time()
@@ -56,7 +60,8 @@ class Experiment(object):
 
             self.cum_train_time += train_ep_time
             self.cum_test_time += test_session_time
-            print("Train:: ep: {}, returnX: {}, returnY: {}, stepsX: {}, stepsY: {},  elapsed: {}".format(episode_count, episode_returnX, episode_returnY, num_stepsX, num_stepsY, time.strftime("%H:%M:%S", time.gmtime(train_ep_time))))
+            if episode_count % self.print_ep_freq == 0:
+                print("Train:: ep: {}, returnX: {}, returnY: {}, stepsX: {}, stepsY: {},  elapsed: {}".format(episode_count, episode_returnX, episode_returnY, num_stepsX, num_stepsY, time.strftime("%H:%M:%S", time.gmtime(train_ep_time))))
 
             # force_terminated if total_train_steps reached and episode is truncated
             assert force_terminatedX == force_terminatedY
@@ -84,13 +89,12 @@ class Experiment(object):
         episode_return = 0.
         episode_step_count = 0
 
-        # TODO: Augment obs
         _, obs = train_env.start(selected_track_idx=None)
         action_one_hot = np.zeros((1, agent.nActions))
 
         obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in obs])
 
-        # print("env_start", obs)
+        # print("env_start", np.shape(obs),obs)
         force_terminated = False
 
         episode_buffer = []
@@ -112,27 +116,33 @@ class Experiment(object):
             # first step
             if i == 0:
                 action = agent.start(obs, is_pretraining, is_train=True)
+                # print("agent start", np.shape(action), action)
 
             # also take action in last step, because we are manually truncating the episode
             else:
                 action = agent.step(obs, is_pretraining, is_train=True)
+                # print("agent step", np.shape(action), action)
 
             # Env step: gives next_state, next_obs
             next_state, next_obs, done = train_env.step(action)
 
+            # print("env step: ns", np.shape(next_state), next_state)
+            # print("env step: n_obs", np.shape(next_obs), next_obs)
+
             # Augment next_obs
             action_one_hot = np.reshape(np.array([int(i == action) for i in range(agent.nActions)]), (1, agent.nActions))
             next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
+            # print("env step: augmented n_obs", np.shape(next_obs), next_obs)
 
             # Agent predict
             reward = agent.predict(next_obs, next_state)
+            # print("reward", np.shape(reward), reward)
 
             # Agent update
             if (not is_pretraining) and \
                     (self.train_step_count[xory] % self.agent_update_freq == 0):
                 agent.update()
 
-            # TODO: Check saving augmented obs
             episode_buffer.append(np.reshape(np.array([obs, action, reward, next_obs, False, next_state]), [1, 6]))
 
             episode_return += reward

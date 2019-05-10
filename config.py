@@ -13,10 +13,10 @@ class Config:
         self.test_interval = 1600  # every 100 episodes
 
         self.agent_pre_train_steps = 1600  # 100 episodes
-        self.agent_update_freq = 2
+        self.agent_update_freq = 4
 
         # env params
-        self.max_ep_length = 16  # The max allowed length of our episode.
+        self.max_ep_length = 12  # The max allowed length of our episode.
         self.nStates = 21
         self.nActions = 10
 
@@ -24,15 +24,17 @@ class Config:
         self.qnet_lr = 0.0001
         self.mnet_lr = 0.0001
 
-        self.h_size = 256  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
+        self.h_size = 128  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
 
-        self.batch_size = 4
-        self.trace_length = 4
+        self.batch_size = 16
+        self.trace_length = 8
         self.buffer_size = 1000000  # 1mil episodes
 
         self.epsilon = 0.1
         self.gamma = 0.99
         self.tau = 0.001
+
+        self.print_ep_freq = 10
 
         # self.startE = 1.0
         # self.endE = 0.1

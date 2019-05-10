@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-agent_type_arr = ['normal', 'randomAction', 'coverage']
-
+dir_name = 'lstm512'
 num_runs = 8
+
+agent_type_arr = ['normal', 'randomAction', 'coverage']
 ma_window = 100
 
 
@@ -33,8 +34,8 @@ def main():
         for i in range(num_runs):
 
             # Train results
-            trainX_filename = 'results/{}_{}_train_return_per_episodeX.txt'.format(agent_type, i)
-            trainY_filename = 'results/{}_{}_train_return_per_episodeY.txt'.format(agent_type, i)
+            trainX_filename = 'results/{}/{}_{}_train_return_per_episodeX.txt'.format(dir_name, agent_type, i)
+            trainY_filename = 'results/{}/{}_{}_train_return_per_episodeY.txt'.format(dir_name, agent_type, i)
 
             trainX = np.loadtxt(trainX_filename, delimiter=',')
             trainY = np.loadtxt(trainY_filename, delimiter=',')
@@ -43,7 +44,7 @@ def main():
             trainY_arr.append(trainY)
 
             # Test results
-            # test_filename = 'results/{}_{}_test_return_per_episode.txt'.format(agent_type, i)
+            # test_filename = 'results/{}/{}_{}_test_return_per_episode.txt'.format(dir_name, agent_type, i)
 
         trainX_mean = np.mean(trainX_arr, axis=0)
         trainY_mean = np.mean(trainY_arr, axis=0)
