@@ -32,6 +32,10 @@ class DAN:
         self.qnet_current_rnn_state = None
         self.mnet_current_rnn_state = None
 
+        # Only for test
+        self.test_qnet_current_rnn_state = None
+        self.test_mnet_current_rnn_state = None
+
         # create Network
         with self.graph.as_default():
             tf.set_random_seed(config.random_seed)
@@ -179,3 +183,64 @@ class DAN:
         else:
             return ValueError("Wrong value in self.xory")
 
+    def start_getQ(self, raw_obs, is_train):
+        assert(is_train is False)
+        # obs: (1,31) np.zero observation
+        obs = self.select_xy(raw_obs)
+
+        # reset qnet, mnet current rnn state
+        self.test_qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
+        self.test_mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
+
+        Qval, rnn_state = self.qnet.get_Qval(obs, self.test_qnet_current_rnn_state)
+        self.test_qnet_current_rnn_state = rnn_state
+
+        # if self.agent_type == 'normal' or self.agent_type == 'coverage':
+        #     action = greedy_action[0]
+        #
+        # elif self.agent_type == 'randomAction':
+        #     action = self.rng.randint(0, self.nActions)
+        #
+        # else:
+        #     raise ValueError("Invalid self.agent_type")
+
+        return Qval
+
+    def step_getQ(self, raw_obs, is_train):
+        assert (is_train is False)
+        # obs: (1, 31)
+        obs = self.select_xy(raw_obs)
+
+        Qval, rnn_state = self.qnet.get_Qval(obs, self.test_qnet_current_rnn_state)
+        self.test_qnet_current_rnn_state = rnn_state
+
+        # if self.agent_type == 'normal' or self.agent_type == 'coverage':
+        #     # greedy action
+        #     action = greedy_action[0]
+        #
+        # elif self.agent_type == 'randomAction':
+        #     action = self.rng.randint(0, self.nActions)
+        #
+        # else:
+        #     raise ValueError("Invalid self.agent_type")
+
+        return Qval
+
+    def predict_test(self, raw_obs, raw_state):
+        # print("raw_obs", raw_obs)
+        obs = self.select_xy(raw_obs)
+        state = self.select_xy(raw_state)
+
+        prediction, rnn_state = self.mnet.get_prediction(obs, self.test_mnet_current_rnn_state)
+        self.test_mnet_current_rnn_state = rnn_state
+
+        if self.agent_type == 'normal' or self.agent_type == 'randomAction':
+            reward = self.get_prediction_reward(prediction[0], state)
+
+        elif self.agent_type == 'coverage':
+            reward = self.get_coverage_reward(obs)
+
+        else:
+            raise ValueError("Invalid self.agent_type")
+
+        return reward

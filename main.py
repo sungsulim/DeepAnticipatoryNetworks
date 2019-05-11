@@ -33,7 +33,8 @@ def main():
     with open("{}/Experiment_Params.txt".format(save_dir), "w") as config_file:
         config_file.write(config_string)
 
-    rng_state = np.random.RandomState(config.random_seed)
+    # Fixed random state for train/test split
+    rng_state = np.random.RandomState(9999)
 
     # create environment
     dummy_envX = SSenvReal(config, 'data/sampled_tracksX', [])
@@ -62,16 +63,16 @@ def main():
     rng_state.shuffle(trackX_idx)
     rng_state.shuffle(trackY_idx)
 
-    train_trackX_idx = trackX_idx[config.test_ep_num:]
-    test_trackX_idx = trackX_idx[:config.test_ep_num]
+    train_trackX_idx = trackX_idx[int(config.test_ep_num):]
+    test_trackX_idx = trackX_idx[:int(config.test_ep_num)]
 
-    train_trackY_idx = trackY_idx[config.test_ep_num:]
-    test_trackY_idx = trackY_idx[:config.test_ep_num]
+    train_trackY_idx = trackY_idx[int(config.test_ep_num):]
+    test_trackY_idx = trackY_idx[:int(config.test_ep_num)]
 
     print("train track X num: {}".format(len(train_trackX_idx)))  # 15907
-    print("test track X num: {}".format(len(test_trackX_idx)))  # 500
-
     print("train track Y num: {}".format(len(train_trackY_idx)))  # 12326
+
+    print("test track X num: {}".format(len(test_trackX_idx)))  # 500
     print("test track Y num: {}".format(len(test_trackY_idx)))  # 500
 
     train_envX = SSenvReal(config, 'data/sampled_tracksX', train_trackX_idx)
@@ -91,11 +92,17 @@ def main():
                             config=config)
 
     # run experiment
-    train_return_per_episode, test_mean_return_per_episode, test_std_return_per_episode = experiment.run()
+    train_return_per_episode, test_mean_return_per_episode = experiment.run()
     train_return_per_episodeX, train_return_per_episodeY = train_return_per_episode
+    test_mean_return_per_episodeX, test_mean_return_per_episodeY = test_mean_return_per_episode
 
+    # Train result
     np.array(train_return_per_episodeX).tofile("{}/{}_{}_train_return_per_episodeX.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
     np.array(train_return_per_episodeY).tofile("{}/{}_{}_train_return_per_episodeY.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
+
+    # Test result
+    np.array(test_mean_return_per_episodeX).tofile("{}/{}_{}_test_mean_return_per_episodeX.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
+    np.array(test_mean_return_per_episodeY).tofile("{}/{}_{}_test_mean_return_per_episodeY.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
 
     config_string = ""
     for key in config.__dict__:

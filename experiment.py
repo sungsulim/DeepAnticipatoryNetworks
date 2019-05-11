@@ -7,11 +7,14 @@ class Experiment(object):
     def __init__(self, train_env, test_env, agent, config):
 
         # Env / Agent
+        self.test_rng = np.random.RandomState(0)
         self.train_env = train_env
         self.test_env = test_env
         self.agent = agent
 
         # self.config = config
+        self.agent_type = config.agent_type
+
         self.total_train_steps = config.total_train_steps
         self.test_interval = config.test_interval
         self.test_ep_num = config.test_ep_num
@@ -23,8 +26,9 @@ class Experiment(object):
         # results
         self.train_return_per_episodeX = []
         self.train_return_per_episodeY = []
-        self.test_mean_return_per_episode = []
-        self.test_std_return_per_episode = []
+
+        self.test_mean_return_per_episodeX = []
+        self.test_mean_return_per_episodeY = []
 
         self.train_step_count = {'x': 0, 'y': 0}
         self.cum_train_time = 0.0
@@ -40,23 +44,27 @@ class Experiment(object):
 
         # TODO: Disabled evaluation
         # test once at beginning
-        # self.cum_test_time += self.test()
+        self.cum_test_time += self.test()
 
-        while self.train_step_count['x'] + self.train_step_count['y'] < self.total_train_steps:
+        while (self.train_step_count['x'] + self.train_step_count['y'])/2 < self.total_train_steps:
+
+            test_session_time = 0.0
 
             # runs a single episode and returns the accumulated return for that episode
             train_start_time = time.time()
             # print('running episode x')
-            episode_returnX, num_stepsX, force_terminatedX, test_session_timeX = self.run_episode_train('x')
+            episode_returnX, num_stepsX, force_terminatedX = self.run_episode_train('x')
 
             # print('running episode y')
-            episode_returnY, num_stepsY, force_terminatedY, test_session_timeY = self.run_episode_train('y')
+            episode_returnY, num_stepsY, force_terminatedY = self.run_episode_train('y')
 
             train_end_time = time.time()
 
-            # TODO: combine test_session_timeX and Y
-            test_session_time = test_session_timeX + test_session_timeY
-            train_ep_time = train_end_time - train_start_time - test_session_time
+            # Test
+            if (self.train_step_count['x'] + self.train_step_count['y'])/2 % self.test_interval == 0:
+                test_session_time += self.test()
+
+            train_ep_time = train_end_time - train_start_time
 
             self.cum_train_time += train_ep_time
             self.cum_test_time += test_session_time
@@ -77,7 +85,7 @@ class Experiment(object):
         print("Train Time: " + time.strftime("%H:%M:%S", time.gmtime(self.cum_train_time)))
         print("Test Time: " + time.strftime("%H:%M:%S", time.gmtime(self.cum_test_time)))
 
-        return (self.train_return_per_episodeX, self.train_return_per_episodeY), self.test_mean_return_per_episode, self.test_std_return_per_episode
+        return (self.train_return_per_episodeX, self.train_return_per_episodeY), (self.test_mean_return_per_episodeX, self.test_mean_return_per_episodeX)
 
     # Runs a single episode (TRAIN)
     def run_episode_train(self, xory):
@@ -85,7 +93,6 @@ class Experiment(object):
         train_env = self.train_env[xory]
         agent = self.agent[xory]
 
-        test_session_time = 0.0
         episode_return = 0.
         episode_step_count = 0
 
@@ -148,67 +155,110 @@ class Experiment(object):
             episode_return += reward
             obs = next_obs
 
-            # Temporarily disabled
-            # if self.train_step_count[xory] % self.test_interval == 0:
-            #     test_session_time += self.test()
-
         # save to ReplayBuffer
         agent.replay_buffer.add(list(zip(np.array(episode_buffer))))
 
-        return episode_return, episode_step_count, force_terminated, test_session_time
+        return episode_return, episode_step_count, force_terminated
 
     def test(self):
-        temp_return_per_episode = []
+        temp_return_per_episodeX = []
+        temp_return_per_episodeY = []
 
         test_session_time = 0.0
 
         for i in range(self.test_ep_num):
             test_start_time = time.time()
-            episode_return, num_steps = self.run_episode_test(track_idx=i)
+            episode_returnX, num_stepsX = self.run_episode_test('x', track_idx=i)
+            episode_returnY, num_stepsY = self.run_episode_test('y', track_idx=i)
             test_end_time = time.time()
-            temp_return_per_episode.append(episode_return)
+
+            temp_return_per_episodeX.append(episode_returnX)
+            temp_return_per_episodeY.append(episode_returnY)
 
             test_elapsed_time = test_end_time - test_start_time
 
             test_session_time += test_elapsed_time
-            print("=== TEST :: ep: " + str(i) + ", r: " + str(episode_return) + ", n_steps: " + str(
-                num_steps) + ", elapsed: " + time.strftime("%H:%M:%S", time.gmtime(test_elapsed_time)))
 
-        self.test_mean_return_per_episode.append(np.mean(temp_return_per_episode))
-        self.test_std_return_per_episode.append(np.std(temp_return_per_episode))
+            if i % self.print_ep_freq == 0:
+                print("Test:: ep: {}, returnX: {}, returnY: {}, stepsX: {}, stepsY: {},  elapsed: {}".format(i,episode_returnX,episode_returnY,num_stepsX,num_stepsY,time.strftime("%H:%M:%S",time.gmtime(test_elapsed_time))))
+
+        # TODO: save result
+        self.test_mean_return_per_episodeX.append(np.mean(temp_return_per_episodeX))
+        self.test_mean_return_per_episodeY.append(np.mean(temp_return_per_episodeY))
 
         self.cum_test_time += test_session_time
 
         return test_session_time
 
     # Runs a single episode (TEST)
-    def run_episode_test(self, track_idx):
+    def run_episode_test(self, xory, track_idx):
+
+        test_env = self.test_env[xory]
+
+        agentX = self.agent['x']
+        agentY = self.agent['y']
 
         episode_return = 0.
         episode_step_count = 0
 
-        self.agent.reset()
-        obs = self.test_env.start(track_idx=track_idx)
+        _, obs = test_env.start(selected_track_idx=track_idx)
+        action_one_hot = np.zeros((1, agentX.nActions))
 
-        is_pretraining = False
+        obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in obs])
 
-        for i in range(0, self.test_env.max_ep_length):
+        for i in range(0, test_env.max_ep_length):
             episode_step_count += 1
 
             # Agent take action
             # first step
             if i == 0:
-                action = self.agent.start(obs, is_pretraining, is_train=False)
+                Qx = agentX.start_getQ(obs, is_train=False)
+                Qy = agentY.start_getQ(obs, is_train=False)
+
+                # print('Qx', np.shape(Qx), Qx)
+                # print('Qy', np.shape(Qy), Qy)
+
+                if self.agent_type == 'normal' or self.agent_type == 'coverage':
+                    # TODO: implement true argmax (break ties)
+                    action = np.argmax(Qx + Qy)
+                elif self.agent_type == 'randomAction':
+                    action = self.test_rng.randint(0, agentX.nActions)
+                else:
+                    raise ValueError("invalid self.agent_type")
+
 
             # also take action in last step, because we are manually truncating the episode
             else:
-                action = self.agent.step(obs, is_pretraining, is_train=False)
+                Qx = agentX.step_getQ(obs, is_train=False)
+                Qy = agentY.step_getQ(obs, is_train=False)
+
+                # print('Qx', np.shape(Qx), Qx)
+                # print('Qy', np.shape(Qy), Qy)
+
+                if self.agent_type == 'normal' or self.agent_type == 'coverage':
+                    # TODO: implement true argmax (break ties)
+                    action = np.argmax(Qx + Qy)
+                elif self.agent_type == 'randomAction':
+                    action = self.test_rng.randint(0, agentX.nActions)
+                else:
+                    raise ValueError("invalid self.agent_type")
 
             # Env gives obs_n, reward
-            next_state, next_obs, done = self.test_env.step(action)
+            next_state, next_obs, done = test_env.step(action)
+
+            # Augment next_obs
+            action_one_hot = np.reshape(np.array([int(i == action) for i in range(agentX.nActions)]),
+                                        (1, agentX.nActions))
+            next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
 
             # Agent predict
-            reward = self.agent.predict(next_obs, next_state)
+            rewardX = agentX.predict_test(next_obs, next_state)
+            rewardY = agentY.predict_test(next_obs, next_state)
+
+            if rewardX and rewardY:
+                reward = 1.0
+            else:
+                reward = 0.0
 
             episode_return += reward
             obs = next_obs
