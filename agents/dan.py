@@ -169,6 +169,7 @@ class DAN:
         # perform update
         if self.agent_type == 'normal' or self.agent_type == 'coverage':
             self.qnet.update(train_batch, self.trace_length, self.batch_size)
+            self.qnet.update_target_network()
 
         if self.agent_type == 'normal' or self.agent_type == 'randomAction':
             self.mnet.update(train_batch, self.trace_length, self.batch_size)

@@ -125,6 +125,30 @@ class Qnetwork:
 
         return action, rnn_state
 
+    def get_greedy_action_target(self, obs, input_rnn_state):
+
+        ### during take action (e-greedy)
+        # input_rnn_state : np.zeros only at the beginning of episode
+        # train_length : 1
+        # batch_size : 1
+
+        ### during update
+        # input_rnn_state : np.zeros
+        # train_length: trace_length: 4
+        # batch_size = 4
+
+        train_length = 1
+        batch_size = 1
+
+        action, rnn_state = self.sess.run([self.target_argmaxQ, self.target_current_rnn_state], feed_dict={
+            self.target_input_obs: obs,
+            self.target_input_rnn_state: input_rnn_state,
+            self.target_train_length: train_length,
+            self.target_batch_size: batch_size
+        })
+
+        return action, rnn_state
+
     def get_Qval(self, obs, input_rnn_state):
 
         train_length = 1
@@ -136,7 +160,6 @@ class Qnetwork:
             self.train_length: train_length,
             self.batch_size: batch_size
         })
-
         return Qval, rnn_state
 
     def update(self, train_batch, trace_length, batch_size):
