@@ -16,7 +16,7 @@ class Config:
         self.trace_length = 8
 
         # agent params
-        self.epsilon = 0.1
+        self.epsilon = 0.2
         self.qnet_lr = 0.001
         self.mnet_lr = 0.001
         self.agent_update_freq = 1
