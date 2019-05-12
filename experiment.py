@@ -85,7 +85,7 @@ class Experiment(object):
         print("Train Time: " + time.strftime("%H:%M:%S", time.gmtime(self.cum_train_time)))
         print("Test Time: " + time.strftime("%H:%M:%S", time.gmtime(self.cum_test_time)))
 
-        return (self.train_return_per_episodeX, self.train_return_per_episodeY), (self.test_mean_return_per_episodeX, self.test_mean_return_per_episodeX)
+        return (self.train_return_per_episodeX, self.train_return_per_episodeY), (self.test_mean_return_per_episodeX, self.test_mean_return_per_episodeY)
 
     # Runs a single episode (TRAIN)
     def run_episode_train(self, xory):
