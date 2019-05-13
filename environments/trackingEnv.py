@@ -7,7 +7,7 @@ class SSenvReal:
 
     def __init__(self, config, file_loc, idx_arr):
 
-        self.rng = np.random.RandomState(config.random_seed)
+        # self.rng = np.random.RandomState(config.random_seed)
 
         self.nStates = 21  # (these are the number of cells possible in the x space)
         # self.nActions = 10  # (0 to 9) # not used anymore.
@@ -32,7 +32,8 @@ class SSenvReal:
 
         # select track randomly
         if selected_track_idx is None:
-            self.current_track = self.tracks[self.rng.choice(self.track_idx)]
+            # self.current_track = self.tracks[self.rng.choice(self.track_idx)]
+            self.current_track = self.tracks[np.random.choice(self.track_idx)]
         # For testing purpose
         else:
             self.current_track = self.tracks[self.track_idx[selected_track_idx]]

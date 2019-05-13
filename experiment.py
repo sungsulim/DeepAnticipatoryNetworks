@@ -7,7 +7,7 @@ class Experiment(object):
     def __init__(self, train_env, test_env, agent, config):
 
         # Env / Agent
-        self.test_rng = None
+        # self.test_rng = None
         self.train_env = train_env
         self.test_env = test_env
         self.agent = agent
@@ -193,7 +193,7 @@ class Experiment(object):
     # Runs a single episode (TEST)
     def run_episode_test(self, xory, track_idx):
 
-        self.test_rng = np.random.RandomState(0)
+        # self.test_rng = np.random.RandomState(0)
 
         test_env = self.test_env[xory]
 
@@ -224,7 +224,8 @@ class Experiment(object):
                     # TODO: implement true argmax (break ties)
                     action = np.argmax(Qx + Qy)
                 elif self.agent_type == 'randomAction':
-                    action = self.test_rng.randint(0, agentX.nActions)
+                    # action = self.test_rng.randint(0, agentX.nActions)
+                    action = np.random.randint(0, agentX.nActions)
                 else:
                     raise ValueError("invalid self.agent_type")
 
@@ -241,7 +242,8 @@ class Experiment(object):
                     # TODO: implement true argmax (break ties)
                     action = np.argmax(Qx + Qy)
                 elif self.agent_type == 'randomAction':
-                    action = self.test_rng.randint(0, agentX.nActions)
+                    # action = self.test_rng.randint(0, agentX.nActions)
+                    action = np.random.randint(0, agentX.nActions)
                 else:
                     raise ValueError("invalid self.agent_type")
 

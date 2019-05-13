@@ -13,7 +13,7 @@ class DAN:
         # 'x' or 'y'
         self.xory = xory
 
-        self.rng = np.random.RandomState(config.random_seed)
+        # self.rng = np.random.RandomState(config.random_seed)
         self.h_size = config.h_size  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
         self.batch_size = config.batch_size
         self.trace_length = config.trace_length
@@ -69,14 +69,17 @@ class DAN:
             if self.agent_type == 'dan' \
                     or self.agent_type == 'coverage' \
                     or self.agent_type == 'dan_coverage':
-                if is_pretraining or self.rng.rand() < self.epsilon:
+                # if is_pretraining or self.rng.rand() < self.epsilon:
+                if is_pretraining or np.random.rand() < self.epsilon:
                     # random action
-                    action = self.rng.randint(0, self.nActions)
+                    # action = self.rng.randint(0, self.nActions)
+                    action = np.random.randint(0, self.nActions)
                 else:
                     action = greedy_action[0]
 
             elif self.agent_type == 'randomAction':
-                action = self.rng.randint(0, self.nActions)
+                # action = self.rng.randint(0, self.nActions)
+                action = np.random.randint(0, self.nActions)
 
             else:
                 raise ValueError("Invalid self.agent_type")
@@ -101,15 +104,18 @@ class DAN:
             if self.agent_type == 'dan' \
                     or self.agent_type == 'coverage'\
                     or self.agent_type == 'dan_coverage':
-                if is_pretraining or self.rng.rand() < self.epsilon:
+                # if is_pretraining or self.rng.rand() < self.epsilon:
+                if is_pretraining or np.random.rand() < self.epsilon:
                     # random action
-                    action = self.rng.randint(0, self.nActions)
+                    # action = self.rng.randint(0, self.nActions)
+                    action = np.random.randint(0, self.nActions)
                 else:
                     # greedy action
                     action = greedy_action[0]
 
             elif self.agent_type == 'randomAction':
-                action = self.rng.randint(0, self.nActions)
+                # action = self.rng.randint(0, self.nActions)
+                action = np.random.randint(0, self.nActions)
 
             else:
                 raise ValueError("Invalid self.agent_type")
