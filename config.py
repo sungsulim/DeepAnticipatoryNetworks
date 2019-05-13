@@ -16,6 +16,7 @@ class Config:
         self.trace_length = 8
 
         # agent params
+        self.update_reward = False
         self.epsilon = 0.1
         self.qnet_lr = 0.001
         self.mnet_lr = 0.001
