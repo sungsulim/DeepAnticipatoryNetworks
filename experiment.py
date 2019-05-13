@@ -7,7 +7,7 @@ class Experiment(object):
     def __init__(self, train_env, test_env, agent, config):
 
         # Env / Agent
-        self.test_rng = np.random.RandomState(0)
+        self.test_rng = None
         self.train_env = train_env
         self.test_env = test_env
         self.agent = agent
@@ -193,6 +193,8 @@ class Experiment(object):
     # Runs a single episode (TEST)
     def run_episode_test(self, xory, track_idx):
 
+        self.test_rng = np.random.RandomState(0)
+
         test_env = self.test_env[xory]
 
         agentX = self.agent['x']
@@ -218,7 +220,7 @@ class Experiment(object):
                 # print('Qx', np.shape(Qx), Qx)
                 # print('Qy', np.shape(Qy), Qy)
 
-                if self.agent_type == 'normal' or self.agent_type == 'coverage':
+                if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
                     # TODO: implement true argmax (break ties)
                     action = np.argmax(Qx + Qy)
                 elif self.agent_type == 'randomAction':
@@ -235,7 +237,7 @@ class Experiment(object):
                 # print('Qx', np.shape(Qx), Qx)
                 # print('Qy', np.shape(Qy), Qy)
 
-                if self.agent_type == 'normal' or self.agent_type == 'coverage':
+                if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
                     # TODO: implement true argmax (break ties)
                     action = np.argmax(Qx + Qy)
                 elif self.agent_type == 'randomAction':

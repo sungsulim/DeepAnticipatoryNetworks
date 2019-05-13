@@ -23,7 +23,7 @@ class Config:
         self.h_size = 128  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
 
         self.test_ep_num = 50  # total 100
-        self.test_interval = 120  # every 100 episodes
+        self.test_interval = 360  # every 30 episodes
 
         self.buffer_size = 1000000  # 1mil episodes
 

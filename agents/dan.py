@@ -8,7 +8,7 @@ from agents.networks.mnet import Mnetwork
 class DAN:
     def __init__(self, config, xory):
 
-        self.agent_type = config.agent_type  # 'normal', 'randomAction', 'coverage'
+        self.agent_type = config.agent_type  # 'dan', 'randomAction', 'coverage'
 
         # 'x' or 'y'
         self.xory = xory
@@ -65,7 +65,9 @@ class DAN:
         # print("###########")
         if is_train:
 
-            if self.agent_type == 'normal' or self.agent_type == 'coverage':
+            if self.agent_type == 'dan' \
+                    or self.agent_type == 'coverage' \
+                    or self.agent_type == 'dan_coverage':
                 if is_pretraining or self.rng.rand() < self.epsilon:
                     # random action
                     action = self.rng.randint(0, self.nActions)
@@ -95,7 +97,9 @@ class DAN:
         # input()
         if is_train:
 
-            if self.agent_type == 'normal' or self.agent_type == 'coverage':
+            if self.agent_type == 'dan' \
+                    or self.agent_type == 'coverage'\
+                    or self.agent_type == 'dan_coverage':
                 if is_pretraining or self.rng.rand() < self.epsilon:
                     # random action
                     action = self.rng.randint(0, self.nActions)
@@ -122,11 +126,16 @@ class DAN:
         # print('agent_prediction', np.shape(prediction), prediction)
         # print("argmax_prediction", np.argmax(prediction))
 
-        if self.agent_type == 'normal' or self.agent_type == 'randomAction':
+        if self.agent_type == 'dan' or self.agent_type == 'randomAction':
             reward = self.get_prediction_reward(prediction[0], state)
 
         elif self.agent_type == 'coverage':
             reward = self.get_coverage_reward(obs)
+
+        elif self.agent_type == 'dan_coverage':
+            reward = self.get_prediction_reward(prediction[0], state)
+            if not reward:
+                reward = self.get_coverage_reward(obs) * 0.2  # 0.2 or 0.0
 
         else:
             raise ValueError("Invalid self.agent_type")
@@ -167,11 +176,11 @@ class DAN:
             train_batch[i][5] = self.select_xy(train_batch[i][5])
 
         # perform update
-        if self.agent_type == 'normal' or self.agent_type == 'coverage':
+        if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
             self.qnet.update(train_batch, self.trace_length, self.batch_size)
             self.qnet.update_target_network()
 
-        if self.agent_type == 'normal' or self.agent_type == 'randomAction':
+        if self.agent_type == 'dan' or self.agent_type == 'randomAction' or self.agent_type == 'dan_coverage':
             self.mnet.update(train_batch, self.trace_length, self.batch_size)
 
         return
@@ -196,15 +205,6 @@ class DAN:
         Qval, rnn_state = self.qnet.get_Qval(obs, self.test_qnet_current_rnn_state)
         self.test_qnet_current_rnn_state = rnn_state
 
-        # if self.agent_type == 'normal' or self.agent_type == 'coverage':
-        #     action = greedy_action[0]
-        #
-        # elif self.agent_type == 'randomAction':
-        #     action = self.rng.randint(0, self.nActions)
-        #
-        # else:
-        #     raise ValueError("Invalid self.agent_type")
-
         return Qval
 
     def step_getQ(self, raw_obs, is_train):
@@ -214,16 +214,6 @@ class DAN:
 
         Qval, rnn_state = self.qnet.get_Qval(obs, self.test_qnet_current_rnn_state)
         self.test_qnet_current_rnn_state = rnn_state
-
-        # if self.agent_type == 'normal' or self.agent_type == 'coverage':
-        #     # greedy action
-        #     action = greedy_action[0]
-        #
-        # elif self.agent_type == 'randomAction':
-        #     action = self.rng.randint(0, self.nActions)
-        #
-        # else:
-        #     raise ValueError("Invalid self.agent_type")
 
         return Qval
 
@@ -235,7 +225,7 @@ class DAN:
         prediction, rnn_state = self.mnet.get_prediction(obs, self.test_mnet_current_rnn_state)
         self.test_mnet_current_rnn_state = rnn_state
 
-        if self.agent_type == 'normal' or self.agent_type == 'randomAction':
+        if self.agent_type == 'dan' or self.agent_type == 'randomAction' or self.agent_type == 'dan_coverage':
             reward = self.get_prediction_reward(prediction[0], state)
 
         elif self.agent_type == 'coverage':

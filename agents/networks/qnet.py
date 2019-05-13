@@ -18,7 +18,6 @@ class Qnetwork:
         self.nActions = config.nActions  # 10
 
         # create network
-
         self.input_obs, self.input_rnn_state, self.current_rnn_state, \
             self.batch_size, self.train_length, self.salience, \
             self.Qout, self.argmaxQ = self.build_network(scope_name='qnet')
