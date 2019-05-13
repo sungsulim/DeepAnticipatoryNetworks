@@ -35,7 +35,7 @@ class SSenvReal:
             self.current_track = self.tracks[self.rng.choice(self.track_idx)]
         # For testing purpose
         else:
-            self.current_track = self.tracks[selected_track_idx]
+            self.current_track = self.tracks[self.track_idx[selected_track_idx]]
 
         self.current_track_idx = 0
 
