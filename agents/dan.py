@@ -19,6 +19,7 @@ class DAN:
         self.trace_length = config.trace_length
 
         # self.pre_train_steps = config.pre_train_steps
+        self.update_reward = config.update_reward
         self.epsilon = config.epsilon
         self.gamma = config.gamma
         self.tau = config.tau
@@ -169,11 +170,18 @@ class DAN:
 
         # Select x or y obs/next_obs, true_state
         for i in range(len(train_batch)):
+
+            if self.update_reward:
+                # reward
+                train_batch[i][2] = self.predict(train_batch[i][3], train_batch[i][5])
+
             # obs
             train_batch[i][0] = self.select_xy(train_batch[i][0])
             # next_obs
             train_batch[i][3] = self.select_xy(train_batch[i][3])
             train_batch[i][5] = self.select_xy(train_batch[i][5])
+
+
 
         # perform update
         if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
