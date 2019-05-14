@@ -1,26 +1,53 @@
 import numpy as np
 import argparse
 import os
+import json
+from collections import OrderedDict
+
 from config import Config
 from experiment import Experiment
 from environments.trackingEnv import SSenvReal
 from agents.dan import DAN
+
+def get_sweep_parameters(parameters, index):
+    out = OrderedDict()
+    accum = 1
+    for key in parameters:
+        num = len(parameters[key])
+        out[key] = parameters[key][int(index / accum) % num]
+        accum *= num
+    return (out, accum)
 
 
 def main():
     # parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--agent_type', type=str)
-    parser.add_argument('--random_seed', type=str)
+    # parser.add_argument('--random_seed', type=str)
     parser.add_argument('--result_dir', type=str)
+    parser.add_argument('--agent_json', type=str)
+    parser.add_argument('--index', type=int)
     args = parser.parse_args()
+
     arg_params = {
-        "agent_type": args.agent_type,
-        "random_seed": int(args.random_seed)
+        "agent_type": args.agent_type
+        # "random_seed": int(args.random_seed)
     }
+
+    with open(args.agent_json, 'r') as agent_dat:
+        agent_json = json.load(agent_dat, object_pairs_hook=OrderedDict)
+
+    agent_params, total_num_sweeps = get_sweep_parameters(agent_json, args.index)
+
+    print('Agent setting: ', agent_params)
+
+    # get run idx and setting idx
+    RUN_NUM = int(args.index / total_num_sweeps)
+    SETTING_NUM = args.index % total_num_sweeps
 
     config = Config()
     config.merge_config(arg_params)
+    config.merge_config(agent_params)
 
     # save results
     save_dir = 'results/{}'.format(args.result_dir)
@@ -97,17 +124,17 @@ def main():
     test_mean_return_per_episodeX, test_mean_return_per_episodeY = test_mean_return_per_episode
 
     # Train result
-    np.array(train_return_per_episodeX).tofile("{}/{}_{}_train_return_per_episodeX.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
-    np.array(train_return_per_episodeY).tofile("{}/{}_{}_train_return_per_episodeY.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
+    np.array(train_return_per_episodeX).tofile("{}/{}_setting_{}_run_{}_train_return_per_episodeX.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
+    np.array(train_return_per_episodeY).tofile("{}/{}_setting_{}_run_{}_train_return_per_episodeY.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
 
     # Test result
-    np.array(test_mean_return_per_episodeX).tofile("{}/{}_{}_test_mean_return_per_episodeX.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
-    np.array(test_mean_return_per_episodeY).tofile("{}/{}_{}_test_mean_return_per_episodeY.txt".format(save_dir, config.agent_type, config.random_seed), sep=',', format='%15.8f')
+    np.array(test_mean_return_per_episodeX).tofile("{}/{}_setting_{}_run_{}_test_mean_return_per_episodeX.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
+    np.array(test_mean_return_per_episodeY).tofile("{}/{}_setting_{}_run_{}_test_mean_return_per_episodeY.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
 
     config_string = ""
     for key in config.__dict__:
         config_string += '{}: {}\n'.format(key, config.__getattribute__(key))
-    with open("{}/Experiment_Params.txt".format(save_dir), "w") as config_file:
+    with open("{}/{}_setting_{}_run_{}_experiment_params.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), "w") as config_file:
         config_file.write(config_string)
 
 
