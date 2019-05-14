@@ -22,17 +22,17 @@ def get_sweep_parameters(parameters, index):
 def main():
     # parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--agent_type', type=str)
+    # parser.add_argument('--agent_type', type=str)
     # parser.add_argument('--random_seed', type=str)
     parser.add_argument('--result_dir', type=str)
     parser.add_argument('--agent_json', type=str)
     parser.add_argument('--index', type=int)
     args = parser.parse_args()
 
-    arg_params = {
-        "agent_type": args.agent_type
-        # "random_seed": int(args.random_seed)
-    }
+    # arg_params = {
+    #     "agent_type": args.agent_type,
+    #     "random_seed": int(args.random_seed)
+    # }
 
     with open(args.agent_json, 'r') as agent_dat:
         agent_json = json.load(agent_dat, object_pairs_hook=OrderedDict)
@@ -46,7 +46,7 @@ def main():
     SETTING_NUM = args.index % total_num_sweeps
 
     config = Config()
-    config.merge_config(arg_params)
+    # config.merge_config(arg_params)
     config.merge_config(agent_params)
 
     # save results

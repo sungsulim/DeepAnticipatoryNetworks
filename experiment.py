@@ -227,7 +227,7 @@ class Experiment(object):
                     # action = self.test_rng.randint(0, agentX.nActions)
                     action = np.random.randint(0, agentX.nActions)
                 else:
-                    raise ValueError("invalid self.agent_type")
+                    raise ValueError("invalid self.agent_type", self.agent_type)
 
 
             # also take action in last step, because we are manually truncating the episode
