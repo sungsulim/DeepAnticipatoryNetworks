@@ -40,7 +40,7 @@ class SSenvReal:
 
         self.current_track_idx = 0
 
-        # print("current_track")
+        # print("===================== current_track")
         # print(self.current_track)
         next_state = None
 
@@ -49,6 +49,7 @@ class SSenvReal:
 
         # next_state_cell: None
         # (next_obs, next_obs) : (2, 1, 21) -- for x and y
+
         return next_state, (next_obs_one_hot, next_obs_one_hot)
 
     def step(self, action):
@@ -88,7 +89,7 @@ class SSenvReal:
         if idx < len(track[0]):
             return [track[0][idx], track[1][idx]]
         else:
-            # TODO: Temp. method of setting the discretized cell to be 20.
+            # TODO: Temp. method of setting the discretized cell to be last idx.
             return [100, 100]  # [20, 20] : manually selecting out-of-range xy_coord
 
     # previously get_obs
@@ -101,14 +102,14 @@ class SSenvReal:
             xy_cell = self.discretize_cell(xy_coord)
             return xy_cell
         else:
-            return [20, 20]
+            return [self.nStates - 1, self.nStates - 1]
 
     # previously get_cell()
     def process_coords(self, xypoint):
 
         # add 50 to make positive
-        xp = xypoint[0] + 50  # 0~150, 160 if out of range
-        yp = xypoint[1] + 50  # 0~150, 160 if out of range
+        xp = xypoint[0] + 50  # 0~150, 150 if out of range
+        yp = xypoint[1] + 50  # 0~150, 150 if out of range
         x_floored = xp // 1  # floor function
         y_floored = yp // 1  # floor function
 
@@ -116,9 +117,10 @@ class SSenvReal:
 
     def discretize_cell(self, contstate):
 
-        # discretize into 20 cells
-        xcell = int((contstate[0]) * 2 / 15)
-        ycell = int((contstate[1]) * 2 / 15)
+        # discretize into (nStates - 1) cells
+
+        xcell = int((contstate[0]) * (self.nStates-1) / 150)
+        ycell = int((contstate[1]) * (self.nStates-1) / 150)
         discstate = [xcell, ycell]
         return discstate
 

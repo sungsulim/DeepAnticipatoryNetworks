@@ -8,7 +8,7 @@ class Config:
         self.random_seed = None
 
         # env params
-        self.total_train_steps = 24000  # 60000  # 3000 episode
+        self.total_train_steps = 30000  # 60000  # 3000 episode
         self.agent_pre_train_steps = 600  # 100 episodes
 
         self.test_ep_num = 50  # total 100
@@ -31,9 +31,9 @@ class Config:
         self.tau = 0.01
         self.gamma = 0.99
 
-        self.nStates = 21
+        self.nStates = 151
         self.nActions = 10
-        self.print_ep_freq = 100
+        self.print_ep_freq = 50
 
     # add custom setting
     def merge_config(self, custom_config):
