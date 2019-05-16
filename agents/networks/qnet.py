@@ -7,8 +7,8 @@ class Qnetwork:
 
         self.sess = sess
 
-        self.fc_size1 = 40
-        self.fc_size2 = 20
+        self.fc_size1 = config.fc_size1
+        self.fc_size2 = config.fc_size2
         self.h_size = config.h_size
 
         self.learning_rate = config.qnet_lr

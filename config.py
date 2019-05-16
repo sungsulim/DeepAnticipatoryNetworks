@@ -8,7 +8,7 @@ class Config:
         self.random_seed = None
 
         # env params
-        self.total_train_steps = 30000  # 60000  # 3000 episode
+        self.total_train_steps = 60000  # 60000  # 3000 episode
         self.agent_pre_train_steps = 600  # 100 episodes
 
         self.test_ep_num = 50  # total 100
@@ -22,6 +22,8 @@ class Config:
         self.batch_size = 4
         self.trace_length = 8
 
+        self.fc_size1 = 60
+        self.fc_size2 = 30
         # agent params
         # self.epsilon = 0.3
 
