@@ -9,11 +9,7 @@ class Mnetwork:
         # before lstm
         self.fc_size1 = 40
         self.fc_size2 = 20
-        self.fc_size3 = 10
         self.h_size = config.h_size
-
-        # after lstm
-        self.fc_size4 = 40
 
         self.learning_rate = config.mnet_lr
         self.gamma = config.gamma
@@ -41,10 +37,24 @@ class Mnetwork:
             input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates + self.nActions))
 
             # 4 fc layers (1 more layer than qnet)
-            net = tf.contrib.layers.fully_connected(input_obs, self.fc_size1, activation_fn=tf.nn.relu)
-            net = tf.contrib.layers.fully_connected(net, self.fc_size2, activation_fn=tf.nn.relu)
-            net = tf.contrib.layers.fully_connected(net, self.fc_size3, activation_fn=tf.nn.relu)
-            net = tf.contrib.layers.fully_connected(net, self.h_size, activation_fn=tf.nn.relu)
+            net = tf.contrib.layers.fully_connected(input_obs, self.fc_size1, activation_fn=tf.nn.relu,
+                                                    weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True),
+                                                    weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                    biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True))
+            net = tf.contrib.layers.fully_connected(net, self.fc_size2, activation_fn=tf.nn.relu,
+                                                    weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True),
+                                                    weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                    biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True))
+            net = tf.contrib.layers.fully_connected(net, self.h_size, activation_fn=tf.nn.relu,
+                                                    weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True),
+                                                    weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                    biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True))
 
             # lstm layer
             batch_size = tf.placeholder(dtype=tf.int32, shape=[])
@@ -59,8 +69,12 @@ class Mnetwork:
             net, current_rnn_state = tf.nn.dynamic_rnn(inputs=net, cell=lstm_cell, dtype=tf.float32, initial_state=input_rnn_state)
             net = tf.reshape(net, shape=[-1, self.h_size])
 
-            net = tf.contrib.layers.fully_connected(net, self.fc_size4, activation_fn=tf.nn.relu)
-            prediction = tf.contrib.layers.fully_connected(net, self.nStates, activation_fn=None)
+            prediction = tf.contrib.layers.fully_connected(net, self.nStates, activation_fn=None,
+                                                           weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                               factor=1.0, mode="FAN_IN", uniform=True),
+                                                           weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                           biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                               factor=1.0, mode="FAN_IN", uniform=True))
             # prediction = tf.contrib.layers.fully_connected(net, self.nStates, activation_fn=tf.nn.softmax)
 
         return input_obs, input_rnn_state, current_rnn_state, batch_size, train_length, prediction

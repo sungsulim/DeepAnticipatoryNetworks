@@ -1,14 +1,9 @@
 {
   "agent_type": ["coverage"],
 
-  "qnet_lr": [1e-1, 1e-2, 1e-3],
+  "qnet_lr": [1e-2, 1e-3],
   "mnet_lr": [0],
-  "h_size": [128, 256],
+  "h_size": [128],
 
-  "max_ep_length": [12],
-  "batch_size": [4],
-  "trace_length": [8],
-
-  "epsilon": [0.1, 0.3],
-  "tau": [0.1, 0.01]
+  "epsilon": [0.1]
 }

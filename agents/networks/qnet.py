@@ -63,12 +63,24 @@ class Qnetwork:
             input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates + self.nActions))
 
             # 3 fc layers
-            net = tf.contrib.layers.fully_connected(input_obs, self.fc_size1, activation_fn=tf.nn.relu)
-                                                    # weights_initializer=tf.contrib.layers.variance_scaling_initializer(factor=1.0, mode="FAN_IN", uniform=True),
-                                                    # weights_regularizer=None,  # tf.contrib.layers.l2_regularizer(0.01),
-                                                    # biases_initializer=tf.contrib.layers.variance_scaling_initializer(factor=1.0, mode="FAN_IN", uniform=True))
-            net = tf.contrib.layers.fully_connected(net, self.fc_size2, activation_fn=tf.nn.relu)
-            net = tf.contrib.layers.fully_connected(net, self.h_size, activation_fn=tf.nn.relu)
+            net = tf.contrib.layers.fully_connected(input_obs, self.fc_size1, activation_fn=tf.nn.relu,
+                                                    weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True),
+                                                    weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                    biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True))
+            net = tf.contrib.layers.fully_connected(net, self.fc_size2, activation_fn=tf.nn.relu,
+                                                    weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True),
+                                                    weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                    biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True))
+            net = tf.contrib.layers.fully_connected(net, self.h_size, activation_fn=tf.nn.relu,
+                                                    weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True),
+                                                    weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                    biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                        factor=1.0, mode="FAN_IN", uniform=True))
 
             # lstm layer
             batch_size = tf.placeholder(dtype=tf.int32, shape=[])
@@ -87,8 +99,18 @@ class Qnetwork:
             # The output from the recurrent player is then split into separate Value and Advantage streams
             streamA, streamV = tf.split(net, num_or_size_splits=2, axis=1)
 
-            Advantage = tf.contrib.layers.fully_connected(streamA, self.nActions, activation_fn=None, biases_initializer=None)
-            Value = tf.contrib.layers.fully_connected(streamV, 1, activation_fn=None, biases_initializer=None)
+            Advantage = tf.contrib.layers.fully_connected(streamA, self.nActions, activation_fn=None,
+                                                          weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                              factor=1.0, mode="FAN_IN", uniform=True),
+                                                          weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                          biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                              factor=1.0, mode="FAN_IN", uniform=True))
+            Value = tf.contrib.layers.fully_connected(streamV, 1, activation_fn=None,
+                                                      weights_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                          factor=1.0, mode="FAN_IN", uniform=True),
+                                                      weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
+                                                      biases_initializer=tf.contrib.layers.variance_scaling_initializer(
+                                                          factor=1.0, mode="FAN_IN", uniform=True))
 
             # Salience is not used
             salience = tf.gradients(Advantage, input_obs)
@@ -196,10 +218,12 @@ class Qnetwork:
         doubleQ = Q2[range(batch_size * trace_length), argmaxQ1]
         targetQ = reward_batch + (self.gamma * doubleQ * end_multiplier)
 
+        # print('avg. doubleQ: {}'.format(np.mean(doubleQ)))
+
         # Update the network with our target values.
         self.sess.run(self.updateModel, feed_dict={
             self.input_obs: np.vstack(obs_batch),
-            self.targetQ : targetQ,
+            self.targetQ: targetQ,
             self.action: action_batch,
             self.train_length: trace_length,
             self.input_rnn_state: state_train,

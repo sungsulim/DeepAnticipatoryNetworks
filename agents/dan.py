@@ -47,6 +47,11 @@ class DAN:
             self.sess.run(tf.global_variables_initializer())
             self.qnet.init_target_network()
 
+        # print("===== INIT QNET")
+        # self.print_variables(self.qnet.net_params)
+        # print("===== INIT TARGET QNET")
+        # self.print_variables(self.qnet.target_net_params)
+
     def start(self, raw_obs, is_pretraining, is_train):
         # obs: (1,31) np.zero observation
         obs = self.select_xy(raw_obs)
@@ -188,11 +193,24 @@ class DAN:
             train_batch[i][5] = self.select_xy(train_batch[i][5])
 
 
-
         # perform update
         if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
+            # print("===== BEFORE UPDATE QNET")
+            # self.print_variables(self.qnet.net_params)
+            # print("===== BEFORE UPDATE TARGET QNET")
+            # self.print_variables(self.qnet.target_net_params)
+            # print("@@@@@@@@")
+
             self.qnet.update(train_batch, self.trace_length, self.batch_size)
             self.qnet.update_target_network()
+
+            # print("===== AFTER UPDATE QNET")
+            # self.print_variables(self.qnet.net_params)
+            # print()
+            # print("===== AFTER UPDATE TARGET QNET")
+            # self.print_variables(self.qnet.target_net_params)
+            #
+            # exit()
 
         if self.agent_type == 'dan' or self.agent_type == 'randomAction' or self.agent_type == 'dan_coverage':
             self.mnet.update(train_batch, self.trace_length, self.batch_size)
@@ -249,3 +267,18 @@ class DAN:
             raise ValueError("Invalid self.agent_type")
 
         return reward
+
+
+    def print_variables(self, variable_list):
+        variable_names = [v.name for v in variable_list]
+        values = self.sess.run(variable_names)
+
+        count=0
+        for k, v in zip(variable_names, values):
+            count += 1
+
+            if count == 3:
+                print("Variable: ", k)
+                print("Shape: ", v.shape)
+                print(v)
+                return

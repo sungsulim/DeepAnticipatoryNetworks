@@ -2,13 +2,8 @@
   "agent_type": ["randomAction"],
 
   "qnet_lr": [0],
-  "mnet_lr": [1e-1, 1e-2, 1e-3],
-  "h_size": [128, 256],
+  "mnet_lr": [1e-2, 1e-3],
+  "h_size": [128],
 
-  "max_ep_length": [12],
-  "batch_size": [4],
-  "trace_length": [8],
-
-  "epsilon": [0.0],
-  "tau": [0.1, 0.01]
+  "epsilon": [0.0]
 }
