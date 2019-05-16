@@ -63,50 +63,70 @@ def main():
     # Fixed random state for train/test split
     rng_state = np.random.RandomState(9999)
 
-    # create environment
-    dummy_envX = SSenvReal(config, 'data/sampled_tracksX', [])
-    dummy_envY = SSenvReal(config, 'data/sampled_tracksY', [])
+    ####### New data
+    dummy_env = SSenvReal(config, 'data/sampled_tracks_new', [])
 
+    track_idx = list(range(len(dummy_env.tracks)))
+    rng_state.shuffle(track_idx)
 
+    train_track_idx = track_idx[int(config.test_ep_num):]
+    test_track_idx = track_idx[:int(config.test_ep_num)]
 
-    # Remove short tracks
-    # X < 32: 4736
-    # Y < 32: 3311
-    trackX_idx = []
-    trackY_idx = []
+    print("train track num: {}".format(len(train_track_idx)))  # 15907
+    print("test track X num: {}".format(len(test_track_idx)))  # 50
 
-    cutoff = config.max_ep_length
-    for i in range(len(dummy_envX.tracks)):
-        if len(dummy_envX.tracks[i][0]) >= cutoff:
-            trackX_idx.append(i)
+    train_envX = SSenvReal(config, 'data/sampled_tracks_new', train_track_idx)
+    train_envY = SSenvReal(config, 'data/sampled_tracks_new', train_track_idx)
 
-    for j in range(len(dummy_envY.tracks)):
-        if len(dummy_envY.tracks[j][1]) >= cutoff:
-            trackY_idx.append(j)
+    test_envX = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
+    test_envY = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
 
-    # split train/test tracks
-    # trackX_idx = list(range(len(dummy_envX.tracks)))  # 0~16406
-    # trackY_idx = list(range(len(dummy_envY.tracks)))  # 0~12825
-    rng_state.shuffle(trackX_idx)
-    rng_state.shuffle(trackY_idx)
+    ####### Previous data
 
-    train_trackX_idx = trackX_idx[int(config.test_ep_num):]
-    test_trackX_idx = trackX_idx[:int(config.test_ep_num)]
+    # # create environment
+    # dummy_envX = SSenvReal(config, 'data/sampled_tracksX', [])
+    # dummy_envY = SSenvReal(config, 'data/sampled_tracksY', [])
+    #
+    # # Remove short tracks
+    # # X < 32: 4736
+    # # Y < 32: 3311
+    # trackX_idx = []
+    # trackY_idx = []
+    #
+    # cutoff = config.max_ep_length
+    # for i in range(len(dummy_envX.tracks)):
+    #     if len(dummy_envX.tracks[i][0]) >= cutoff:
+    #         trackX_idx.append(i)
+    #
+    # for j in range(len(dummy_envY.tracks)):
+    #     if len(dummy_envY.tracks[j][1]) >= cutoff:
+    #         trackY_idx.append(j)
+    #
+    # # split train/test tracks
+    # # trackX_idx = list(range(len(dummy_envX.tracks)))  # 0~16406
+    # # trackY_idx = list(range(len(dummy_envY.tracks)))  # 0~12825
+    # rng_state.shuffle(trackX_idx)
+    # rng_state.shuffle(trackY_idx)
+    #
+    # train_trackX_idx = trackX_idx[int(config.test_ep_num):]
+    # test_trackX_idx = trackX_idx[:int(config.test_ep_num)]
+    #
+    # train_trackY_idx = trackY_idx[int(config.test_ep_num):]
+    # test_trackY_idx = trackY_idx[:int(config.test_ep_num)]
+    #
+    # print("train track X num: {}".format(len(train_trackX_idx)))  # 15907
+    # print("train track Y num: {}".format(len(train_trackY_idx)))  # 12326
+    #
+    # print("test track X num: {}".format(len(test_trackX_idx)))  # 500
+    # print("test track Y num: {}".format(len(test_trackY_idx)))  # 500
+    #
+    # train_envX = SSenvReal(config, 'data/sampled_tracksX', train_trackX_idx)
+    # train_envY = SSenvReal(config, 'data/sampled_tracksY', train_trackY_idx)
+    #
+    # test_envX = SSenvReal(config, 'data/sampled_tracksX', test_trackX_idx)
+    # test_envY = SSenvReal(config, 'data/sampled_tracksY', test_trackY_idx)
+    ##############
 
-    train_trackY_idx = trackY_idx[int(config.test_ep_num):]
-    test_trackY_idx = trackY_idx[:int(config.test_ep_num)]
-
-    print("train track X num: {}".format(len(train_trackX_idx)))  # 15907
-    print("train track Y num: {}".format(len(train_trackY_idx)))  # 12326
-
-    print("test track X num: {}".format(len(test_trackX_idx)))  # 500
-    print("test track Y num: {}".format(len(test_trackY_idx)))  # 500
-
-    train_envX = SSenvReal(config, 'data/sampled_tracksX', train_trackX_idx)
-    train_envY = SSenvReal(config, 'data/sampled_tracksY', train_trackY_idx)
-
-    test_envX = SSenvReal(config, 'data/sampled_tracksX', test_trackX_idx)
-    test_envY = SSenvReal(config, 'data/sampled_tracksY', test_trackY_idx)
 
     # create agent
     agentX = DAN(config, 'x')

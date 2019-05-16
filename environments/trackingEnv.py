@@ -9,7 +9,7 @@ class SSenvReal:
 
         # self.rng = np.random.RandomState(config.random_seed)
 
-        self.nStates = 21  # (these are the number of cells possible in the x space)
+        self.nStates = config.nStates  # (these are the number of cells possible in the x space)
         # self.nActions = 10  # (0 to 9) # not used anymore.
         self.h_size = config.h_size
 
@@ -58,7 +58,7 @@ class SSenvReal:
         # discretized into 20 bins : 0 ~ 19, idx 20 would only occur if value exactly 150.0 (idx 20 never really used)
         next_state = self.discretize_cell(next_state_coord)  # (2,1)
 
-        self.current_track_idx += 1
+        self.current_track_idx += 8
 
         # next_obs currently returns the discretized cells
         next_obs = self.get_next_obs(next_state_coord, action)  # (2,1)
