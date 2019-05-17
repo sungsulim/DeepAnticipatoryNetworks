@@ -19,7 +19,7 @@ class Config:
         self.agent_update_freq = 1
 
         self.max_ep_length = 12  # The max allowed length of our episode.
-        self.batch_size = 8
+        self.batch_size = 4
         self.trace_length = 8
 
         self.fc_size1 = 60

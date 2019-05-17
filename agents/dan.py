@@ -266,7 +266,7 @@ class DAN:
         else:
             raise ValueError("Invalid self.agent_type")
 
-        return reward
+        return np.argmax(prediction[0]), reward
 
 
     def print_variables(self, variable_list):

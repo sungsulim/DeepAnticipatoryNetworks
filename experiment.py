@@ -34,6 +34,8 @@ class Experiment(object):
         self.cum_train_time = 0.0
         self.cum_test_time = 0.0
 
+        self.nStates = config.nStates
+
     def run(self):
 
         episode_count = 0
@@ -193,6 +195,8 @@ class Experiment(object):
     # Runs a single episode (TEST)
     def run_episode_test(self, xory, track_idx):
 
+        if self.train_step_count['x'] > 24000:
+            print("start episode test")
         # self.test_rng = np.random.RandomState(0)
 
         test_env = self.test_env[xory]
@@ -256,14 +260,32 @@ class Experiment(object):
             next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
 
             # Agent predict
-            rewardX = agentX.predict_test(next_obs, next_state)
-            rewardY = agentY.predict_test(next_obs, next_state)
+            predictionX, rewardX = agentX.predict_test(next_obs, next_state)
+            predictionY, rewardY = agentY.predict_test(next_obs, next_state)
 
             if rewardX and rewardY:
                 reward = 1.0
             else:
                 reward = 0.0
 
+            if self.train_step_count['x'] > 24000:
+                print("ns: {}".format(next_state))
+                print("pred: {}, {}".format(predictionX, predictionY))
+
+                foundX = True
+                foundY = True
+
+                if next_obs[0][0][self.nStates-1] == 1:
+                    foundX = False
+                if next_obs[1][0][self.nStates-1] == 1:
+                    foundY = False
+
+                print("found: {}, {}".format(foundX, foundY))
+                print('rewardX: {}'.format(rewardX))
+                print('rewardY: {}'.format(rewardY))
+                print('reward: {}'.format(reward))
+                print()
+                # input()
             episode_return += reward
             obs = next_obs
 
