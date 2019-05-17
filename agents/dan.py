@@ -282,3 +282,7 @@ class DAN:
                 print("Shape: ", v.shape)
                 print(v)
                 return
+
+    def save_network(self, save_dir, xory):
+        self.qnet.save_network(save_dir, xory)
+        self.mnet.save_network(save_dir, xory)

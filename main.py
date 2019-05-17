@@ -54,12 +54,6 @@ def main():
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    config_string = ""
-    for key in config.__dict__:
-        config_string += '{}: {}\n'.format(key, config.__getattribute__(key))
-    with open("{}/Experiment_Params.txt".format(save_dir), "w") as config_file:
-        config_file.write(config_string)
-
     # Fixed random state for train/test split
     rng_state = np.random.RandomState(9999)
 
@@ -78,8 +72,8 @@ def main():
     train_envX = SSenvReal(config, 'data/sampled_tracks_new', train_track_idx)
     train_envY = SSenvReal(config, 'data/sampled_tracks_new', train_track_idx)
 
-    test_envX = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
-    test_envY = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
+    test_env = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
+    # test_envY = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
 
     ####### Previous data
 
@@ -134,22 +128,26 @@ def main():
 
     # create experiment
     experiment = Experiment(train_env={'x': train_envX, 'y': train_envY},
-                            test_env={'x': test_envX, 'y': test_envY},
+                            test_env=test_env,
                             agent={'x': agentX, 'y': agentY},
                             config=config)
 
     # run experiment
     train_return_per_episode, test_mean_return_per_episode = experiment.run()
     train_return_per_episodeX, train_return_per_episodeY = train_return_per_episode
-    test_mean_return_per_episodeX, test_mean_return_per_episodeY = test_mean_return_per_episode
+
+    # save model
+    save_prefix = '{}/{}_setting_{}_run_{}'.format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM)
+    agentX.save_network(save_prefix, 'x')
+    agentX.save_network(save_prefix, 'y')
 
     # Train result
-    np.array(train_return_per_episodeX).tofile("{}/{}_setting_{}_run_{}_train_return_per_episodeX.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
-    np.array(train_return_per_episodeY).tofile("{}/{}_setting_{}_run_{}_train_return_per_episodeY.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
+    np.array(train_return_per_episodeX).tofile("{}_train_return_per_episodeX.txt".format(save_prefix), sep=',', format='%15.8f')
+    np.array(train_return_per_episodeY).tofile("{}_train_return_per_episodeY.txt".format(save_prefix), sep=',', format='%15.8f')
 
     # Test result
-    np.array(test_mean_return_per_episodeX).tofile("{}/{}_setting_{}_run_{}_test_mean_return_per_episodeX.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
-    np.array(test_mean_return_per_episodeY).tofile("{}/{}_setting_{}_run_{}_test_mean_return_per_episodeY.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
+    np.array(test_mean_return_per_episode).tofile("{}_test_mean_return_per_episode.txt".format(save_prefix), sep=',', format='%15.8f')
+    # np.array(test_mean_return_per_episodeY).tofile("{}/{}_setting_{}_run_{}_test_mean_return_per_episodeY.txt".format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM), sep=',', format='%15.8f')
 
     config_string = ""
     for key in config.__dict__:

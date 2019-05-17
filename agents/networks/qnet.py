@@ -57,6 +57,8 @@ class Qnetwork:
         self.loss = tf.reduce_mean(td_error * self.mask)
         self.updateModel = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
 
+        self.saver = tf.train.Saver()
+
     def build_network(self, scope_name):
         with tf.variable_scope(scope_name):
 
@@ -236,3 +238,6 @@ class Qnetwork:
 
     def update_target_network(self):
         self.sess.run(self.update_target_net_params)
+
+    def save_network(self, save_dir, xory):
+        self.saver.save(self.sess, '{}_qnet{}'.format(save_dir, xory))

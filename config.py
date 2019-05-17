@@ -8,11 +8,11 @@ class Config:
         self.random_seed = None
 
         # env params
-        self.total_train_steps = 60000  # 60000  # 3000 episode
-        self.agent_pre_train_steps = 600  # 100 episodes
+        self.total_train_steps = 60000  # 5000 episode
+        self.agent_pre_train_steps = 3000  # 250 episodes
 
-        self.test_ep_num = 50  # total 100
-        self.test_interval = 600  # every 50 episodes
+        self.test_ep_num = 500  # total 100
+        self.test_interval = 6000  # every 500 episodes
 
         self.buffer_size = 1000000  # 1mil episodes
         self.update_reward = False
@@ -33,9 +33,9 @@ class Config:
         self.tau = 0.01
         self.gamma = 0.99
 
-        self.nStates = 151
+        self.nStates = 76
         self.nActions = 10
-        self.print_ep_freq = 50
+        self.print_ep_freq = 500
 
     # add custom setting
     def merge_config(self, custom_config):

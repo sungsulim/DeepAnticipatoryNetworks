@@ -31,6 +31,8 @@ class Mnetwork:
             tf.nn.softmax_cross_entropy_with_logits_v2(labels=target_prediction_onehot, logits=self.prediction))
         self.updateModel = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
 
+        self.saver = tf.train.Saver()
+
     def build_network(self, scope_name):
         with tf.variable_scope(scope_name):
 
@@ -113,3 +115,5 @@ class Mnetwork:
             self.train_length: trace_length,
             self.batch_size: batch_size})
 
+    def save_network(self, save_dir, xory):
+        self.saver.save(self.sess, '{}_mnet{}'.format(save_dir, xory))

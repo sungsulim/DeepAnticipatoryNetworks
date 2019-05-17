@@ -1,9 +1,9 @@
 {
   "agent_type": ["dan_coverage"],
 
-  "qnet_lr": [1e-2, 1e-3],
-  "mnet_lr": [1e-2, 1e-3],
+  "qnet_lr": [1e-3],
+  "mnet_lr": [1e-3],
   "h_size": [128],
 
-  "epsilon": [0.1]
+  "epsilon": [0.1, 0.5]
 }

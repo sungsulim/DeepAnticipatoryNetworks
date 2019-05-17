@@ -27,8 +27,8 @@ class Experiment(object):
         self.train_return_per_episodeX = []
         self.train_return_per_episodeY = []
 
-        self.test_mean_return_per_episodeX = []
-        self.test_mean_return_per_episodeY = []
+        self.test_mean_return_per_episode = []
+        # self.test_mean_return_per_episodeY = []
 
         self.train_step_count = {'x': 0, 'y': 0}
         self.cum_train_time = 0.0
@@ -87,7 +87,7 @@ class Experiment(object):
         print("Train Time: " + time.strftime("%H:%M:%S", time.gmtime(self.cum_train_time)))
         print("Test Time: " + time.strftime("%H:%M:%S", time.gmtime(self.cum_test_time)))
 
-        return (self.train_return_per_episodeX, self.train_return_per_episodeY), (self.test_mean_return_per_episodeX, self.test_mean_return_per_episodeY)
+        return (self.train_return_per_episodeX, self.train_return_per_episodeY), self.test_mean_return_per_episode
 
     # Runs a single episode (TRAIN)
     def run_episode_train(self, xory):
@@ -163,43 +163,43 @@ class Experiment(object):
         return episode_return, episode_step_count, force_terminated
 
     def test(self):
-        temp_return_per_episodeX = []
-        temp_return_per_episodeY = []
+        temp_return_per_episode = []
+        # temp_return_per_episodeY = []
 
         test_session_time = 0.0
 
         for i in range(self.test_ep_num):
             test_start_time = time.time()
-            episode_returnX, num_stepsX = self.run_episode_test('x', track_idx=i)
-            episode_returnY, num_stepsY = self.run_episode_test('y', track_idx=i)
+            episode_return, num_steps = self.run_episode_test('x', track_idx=i)
+            # episode_returnY, num_stepsY = self.run_episode_test('y', track_idx=i)
             test_end_time = time.time()
 
-            temp_return_per_episodeX.append(episode_returnX)
-            temp_return_per_episodeY.append(episode_returnY)
+            temp_return_per_episode.append(episode_return)
+            # temp_return_per_episodeY.append(episode_returnY)
 
             test_elapsed_time = test_end_time - test_start_time
 
             test_session_time += test_elapsed_time
 
             if i % self.print_ep_freq == 0:
-                print("Test:: ep: {}, returnX: {}, returnY: {}, stepsX: {}, stepsY: {},  elapsed: {}".format(i,episode_returnX,episode_returnY,num_stepsX,num_stepsY,time.strftime("%H:%M:%S",time.gmtime(test_elapsed_time))))
+                print("Test:: ep: {}, return: {}, steps: {}, elapsed: {}".format(i, episode_return, num_steps, time.strftime("%H:%M:%S",time.gmtime(test_elapsed_time))))
 
         # TODO: save result
-        self.test_mean_return_per_episodeX.append(np.mean(temp_return_per_episodeX))
-        self.test_mean_return_per_episodeY.append(np.mean(temp_return_per_episodeY))
+        self.test_mean_return_per_episode.append(np.mean(temp_return_per_episode))
+        # self.test_mean_return_per_episodeY.append(np.mean(temp_return_per_episodeY))
 
         self.cum_test_time += test_session_time
 
         return test_session_time
 
     # Runs a single episode (TEST)
-    def run_episode_test(self, xory, track_idx):
+    def run_episode_test(self, _, track_idx):
 
         # if self.train_step_count['x'] > 24000:
         #     print("start episode test")
         # self.test_rng = np.random.RandomState(0)
 
-        test_env = self.test_env[xory]
+        test_env = self.test_env
 
         agentX = self.agent['x']
         agentY = self.agent['y']
