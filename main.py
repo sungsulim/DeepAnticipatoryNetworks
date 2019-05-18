@@ -139,7 +139,7 @@ def main():
     # save model
     save_prefix = '{}/{}_setting_{}_run_{}'.format(save_dir, config.agent_type, SETTING_NUM, RUN_NUM)
     agentX.save_network(save_prefix, 'x')
-    agentX.save_network(save_prefix, 'y')
+    agentY.save_network(save_prefix, 'y')
 
     # Train result
     np.array(train_return_per_episodeX).tofile("{}_train_return_per_episodeX.txt".format(save_prefix), sep=',', format='%15.8f')
