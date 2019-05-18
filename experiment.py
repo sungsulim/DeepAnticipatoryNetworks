@@ -330,66 +330,68 @@ class Experiment(object):
         assert (len(Qx_rnn_state_arr) == self.test_ep_num)
         assert (np.shape(Mx_rnn_state_arr[0]) == (2, 1, agentX.h_size))
 
-        # i = 0, ..., 11
-        for i in range(0, test_env.max_ep_length):
-            episode_step_count += 1
-            # print("current step: {}".format(episode_step_count))
-            if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
+        test_ep_batch = 5
+        for test_ep_start in range(0, self.test_ep_num, test_ep_batch):
+            # i = 0, ..., 11
+            for i in range(0, test_env.max_ep_length):
+                episode_step_count += 1
+                # print("current step: {}".format(episode_step_count))
+                if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
 
-                # For each person in test tracks, get Q val
-                Qsum = np.zeros((1, self.nActions))
+                    # For each person in test tracks, get Q val
+                    Qsum = np.zeros((1, self.nActions))
 
-                for p in range(0, self.test_ep_num):
+                    for p in range(test_ep_start, test_ep_start + test_ep_batch):
 
-                    # Agent take action
-                    # first step
-                    if i == 0:
-                        # rnn_stateX: (2,1,h_size)
-                        Qx, rnn_state_Qx = agentX.start_getQ(stacked_obs[p], Qx_rnn_state_arr[p], is_train=False)  # (1, nActions)
-                        Qy, rnn_state_Qy = agentY.start_getQ(stacked_obs[p], Qy_rnn_state_arr[p], is_train=False)  # (1, nActions)
+                        # Agent take action
+                        # first step
+                        if i == 0:
+                            # rnn_stateX: (2,1,h_size)
+                            Qx, rnn_state_Qx = agentX.start_getQ(stacked_obs[p], Qx_rnn_state_arr[p], is_train=False)  # (1, nActions)
+                            Qy, rnn_state_Qy = agentY.start_getQ(stacked_obs[p], Qy_rnn_state_arr[p], is_train=False)  # (1, nActions)
 
-                    # also take action in last step, because we are manually truncating the episode
-                    else:
-                        Qx, rnn_state_Qx = agentX.step_getQ(stacked_obs[p], Qx_rnn_state_arr[p], is_train=False)
-                        Qy, rnn_state_Qy = agentY.step_getQ(stacked_obs[p], Qy_rnn_state_arr[p], is_train=False)
+                        # also take action in last step, because we are manually truncating the episode
+                        else:
+                            Qx, rnn_state_Qx = agentX.step_getQ(stacked_obs[p], Qx_rnn_state_arr[p], is_train=False)
+                            Qy, rnn_state_Qy = agentY.step_getQ(stacked_obs[p], Qy_rnn_state_arr[p], is_train=False)
 
-                    Qsum += (Qx + Qy) / 2
+                        Qsum += (Qx + Qy) / 2
 
-                    Qx_rnn_state_arr[p] = rnn_state_Qx
-                    Qy_rnn_state_arr[p] = rnn_state_Qy
+                        Qx_rnn_state_arr[p] = rnn_state_Qx
+                        Qy_rnn_state_arr[p] = rnn_state_Qy
 
-                action = np.argmax(Qsum)
+                    action = np.argmax(Qsum)
 
-            elif self.agent_type == 'randomAction':
-                # action = self.test_rng.randint(0, self.nActions)
-                action = np.random.randint(0, self.nActions)
-            else:
-                raise ValueError("invalid self.agent_type", self.agent_type)
-
-            action_one_hot = np.reshape(np.array([int(i == action) for i in range(agentX.nActions)]),
-                                        (1, agentX.nActions))
-
-            # Env gives obs_n, reward
-            for p in range(0, self.test_ep_num):
-                next_state, next_obs, done = test_env.multitest_step(selected_track_idx=p, step_num=i, action=action)
-
-                # Augment next_obs
-                next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
-
-                # Agent predict
-                _, rewardX, rnn_state_Mx = agentX.predict_test(next_obs, next_state, Mx_rnn_state_arr[p])
-                _, rewardY, rnn_state_My = agentY.predict_test(next_obs, next_state, My_rnn_state_arr[p])
-
-                Mx_rnn_state_arr[p] = rnn_state_Mx
-                My_rnn_state_arr[p] = rnn_state_My
-
-                if rewardX and rewardY:
-                    reward = 1.0
+                elif self.agent_type == 'randomAction':
+                    # action = self.test_rng.randint(0, self.nActions)
+                    action = np.random.randint(0, self.nActions)
                 else:
-                    reward = 0.0
+                    raise ValueError("invalid self.agent_type", self.agent_type)
 
-                episode_return[i] += reward
-                stacked_obs[p] = next_obs
+                action_one_hot = np.reshape(np.array([int(i == action) for i in range(agentX.nActions)]),
+                                            (1, agentX.nActions))
+
+                # Env gives obs_n, reward
+                for p in range(test_ep_start, test_ep_start + test_ep_batch):
+                    next_state, next_obs, done = test_env.multitest_step(selected_track_idx=p, step_num=i, action=action)
+
+                    # Augment next_obs
+                    next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
+
+                    # Agent predict
+                    _, rewardX, rnn_state_Mx = agentX.predict_test(next_obs, next_state, Mx_rnn_state_arr[p])
+                    _, rewardY, rnn_state_My = agentY.predict_test(next_obs, next_state, My_rnn_state_arr[p])
+
+                    Mx_rnn_state_arr[p] = rnn_state_Mx
+                    My_rnn_state_arr[p] = rnn_state_My
+
+                    if rewardX and rewardY:
+                        reward = 1.0
+                    else:
+                        reward = 0.0
+
+                    episode_return[i] += reward
+                    stacked_obs[p] = next_obs
 
         # episode_return: np array (max_ep_length, )
         # episode_step_count: int
