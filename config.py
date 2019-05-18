@@ -33,7 +33,7 @@ class Config:
         self.tau = 0.01
         self.gamma = 0.99
 
-        self.nStates = 76
+        self.nStates = 51
         self.nActions = 10
         self.print_ep_freq = 500
 
