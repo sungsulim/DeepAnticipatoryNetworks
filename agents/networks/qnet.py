@@ -241,3 +241,6 @@ class Qnetwork:
 
     def save_network(self, save_dir, xory):
         self.saver.save(self.sess, '{}_qnet{}'.format(save_dir, xory))
+
+    def restore_network(self, load_dir, xory):
+        self.saver.restore(self.sess, '{}_qnet{}'.format(load_dir, xory))

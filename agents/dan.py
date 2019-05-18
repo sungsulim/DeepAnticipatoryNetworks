@@ -286,3 +286,7 @@ class DAN:
     def save_network(self, save_dir, xory):
         self.qnet.save_network(save_dir, xory)
         self.mnet.save_network(save_dir, xory)
+
+    def restore_network(self, load_dir, xory):
+        self.qnet.restore_network(load_dir, xory)
+        self.mnet.restore_network(load_dir, xory)

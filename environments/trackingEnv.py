@@ -137,7 +137,41 @@ class SSenvReal:
 
         return covered_cells_by_sensors
 
+    def multitest_start(self):
 
+        next_state = None
+
+        # first observation: np.zeros (1, nStates)
+        next_obs_one_hot = np.zeros(shape=(1, self.nStates))
+
+        # next_state_cell: None
+        # (next_obs, next_obs) : (2, 1, nStates) -- for x and y
+        return next_state, (next_obs_one_hot, next_obs_one_hot)
+
+    def multitest_step(self, selected_track_idx, step_num, action):
+
+        current_track = self.tracks[self.track_idx[selected_track_idx]]
+        current_track_idx = step_num * 8
+
+        next_state_coord = self.process_coords(self.get_next_state(current_track, current_track_idx))  # tuple of (x,y) : 0.0 ~ 150.0, 160.0 if out of range
+
+        # discretized into 20 bins : 0 ~ 19, idx 20 would only occur if value exactly 150.0 (idx 20 never really used)
+        next_state = self.discretize_cell(next_state_coord)  # (2,1)
+
+        # next_obs currently returns the discretized cells
+        next_obs = self.get_next_obs(next_state_coord, action)  # (2,1)
+
+        # process into one-hot-vector of (1,31)
+        # print('next_obs in env', next_obs)
+        next_obs_one_hotX = self.format_one_hot(next_obs[0])
+        next_obs_one_hotY = self.format_one_hot(next_obs[1])
+        # print('onehot shape', np.shape(next_obs_one_hotX), np.shape(next_obs_one_hotY))
+
+        done = False
+
+        # next_state_cell: (2,1) : discretized cell
+        # (next_obsX, next_obsY) : (2,1,21) : formatted observations one-hot
+        return next_state, (next_obs_one_hotX, next_obs_one_hotY), done
 
     # def get_obsX(self, cellstate, action):
     #

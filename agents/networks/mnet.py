@@ -117,3 +117,6 @@ class Mnetwork:
 
     def save_network(self, save_dir, xory):
         self.saver.save(self.sess, '{}_mnet{}'.format(save_dir, xory))
+
+    def restore_network(self, load_dir, xory):
+        self.saver.restore(self.sess, '{}_mnet{}'.format(load_dir, xory))
