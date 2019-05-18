@@ -71,8 +71,8 @@ def main_multitest():
     test_track_idx = track_idx[:int(config.test_ep_num)]
     print("test track num: {}".format(len(test_track_idx)))  # 50
 
-
-    multiperson_mean_return_per_run = np.zeros((config.max_ep_length))
+    # (10, 12)
+    multiperson_mean_return_per_run = np.zeros((args.num_runs, config.max_ep_length))
 
     # create env
     test_env = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
@@ -101,27 +101,36 @@ def main_multitest():
 
         # Verify loaded model
         # Test once (single person tracking)
-        print("Verifying loaded model...")
-        test_session_time, mean_return_per_episode = experiment.test()
-
-        saved_result_filename = '{}_test_mean_return_per_episode.txt'.format(model_prefix)
-        saved_result = np.loadtxt(saved_result_filename, delimiter=',')
-
-        print("Single person Test Time: " + time.strftime("%H:%M:%S", time.gmtime(test_session_time)))
-        print("Mean return per episode: {}, saved result: {}".format(mean_return_per_episode, saved_result[-1]))
-        if config.agent_type != 'randomAction':
-            assert(mean_return_per_episode == saved_result[-1])
+        # print("Verifying loaded model...")
+        # test_session_time, mean_return_per_episode = experiment.test()
+        #
+        # saved_result_filename = '{}_test_mean_return_per_episode.txt'.format(model_prefix)
+        # saved_result = np.loadtxt(saved_result_filename, delimiter=',')
+        #
+        # print("Single person Test Time: " + time.strftime("%H:%M:%S", time.gmtime(test_session_time)))
+        # print("Mean return per episode: {}, saved result: {}".format(mean_return_per_episode, saved_result[-1]))
+        # if config.agent_type != 'randomAction':
+        #     assert(mean_return_per_episode == saved_result[-1])
 
         # Test multiperson (all test tracks simultaneously)
         episode_return_arr, episode_step_count = experiment.multiperson_test()
 
-        multiperson_mean_return_per_run += episode_return_arr
+        multiperson_mean_return_per_run[r] += episode_return_arr
         print("Run {} multiperson test result".format(r))
         print(episode_return_arr)
 
     print("Testing {} Setting {} multiperson mean return per run:".format(config.agent_type, SETTING_NUM))
-    multiperson_mean_return_per_run = multiperson_mean_return_per_run / args.num_runs
-    print(multiperson_mean_return_per_run)
+    multiperson_return_mean = np.mean(multiperson_mean_return_per_run, axis=0)
+    multiperson_return_stderr = np.std(multiperson_mean_return_per_run, axis=0) / np.sqrt(args.num_runs)
+
+    print(multiperson_return_mean)
+
+    # save result
+    save_prefix = '{}/{}_setting_{}'.format(save_dir, config.agent_type, SETTING_NUM)
+    np.array(multiperson_return_mean).tofile("{}_multiperson_test_return_mean.txt".format(save_prefix), sep=',',
+                                                  format='%15.8f')
+    np.array(multiperson_return_stderr).tofile("{}_multiperson_test_return_stderr.txt".format(save_prefix), sep=',',
+                                             format='%15.8f')
 
 
 if __name__ == '__main__':

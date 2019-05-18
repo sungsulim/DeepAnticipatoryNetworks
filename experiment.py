@@ -313,7 +313,7 @@ class Experiment(object):
         # i = 0, ..., 11
         for i in range(0, test_env.max_ep_length):
             episode_step_count += 1
-            print("current step: {}".format(episode_step_count))
+            # print("current step: {}".format(episode_step_count))
             if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
 
                 # For each person in test tracks, get Q val
