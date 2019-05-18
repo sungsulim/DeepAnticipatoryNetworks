@@ -225,37 +225,38 @@ class DAN:
         else:
             return ValueError("Wrong value in self.xory")
 
-    def start_getQ(self, raw_obs, is_train):
+    def start_getQ(self, raw_obs, rnn_state, is_train):
         assert(is_train is False)
         # obs: (1,31) np.zero observation
         obs = self.select_xy(raw_obs)
 
         # reset qnet, mnet current rnn state
-        self.test_qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
-        self.test_mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
+        # self.test_qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
+        # self.test_mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
 
-        Qval, rnn_state = self.qnet.get_Qval(obs, self.test_qnet_current_rnn_state)
-        self.test_qnet_current_rnn_state = rnn_state
+        Qval, new_rnn_state = self.qnet.get_Qval(obs, rnn_state)
+        # self.test_qnet_current_rnn_state = rnn_state
 
-        return Qval
+        return Qval, new_rnn_state
 
-    def step_getQ(self, raw_obs, is_train):
+    def step_getQ(self, raw_obs, rnn_state, is_train):
         assert (is_train is False)
         # obs: (1, 31)
         obs = self.select_xy(raw_obs)
 
-        Qval, rnn_state = self.qnet.get_Qval(obs, self.test_qnet_current_rnn_state)
-        self.test_qnet_current_rnn_state = rnn_state
+        Qval, new_rnn_state = self.qnet.get_Qval(obs, rnn_state)
+        # self.test_qnet_current_rnn_state = rnn_state
 
-        return Qval
+        return Qval, new_rnn_state
 
-    def predict_test(self, raw_obs, raw_state):
+    def predict_test(self, raw_obs, raw_state, rnn_state):
         # print("raw_obs", raw_obs)
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)
 
-        prediction, rnn_state = self.mnet.get_prediction(obs, self.test_mnet_current_rnn_state)
-        self.test_mnet_current_rnn_state = rnn_state
+        # prediction, rnn_state = self.mnet.get_prediction(obs, self.test_mnet_current_rnn_state)
+        prediction, new_rnn_state = self.mnet.get_prediction(obs, rnn_state)
+        # self.test_mnet_current_rnn_state = rnn_state
 
         if self.agent_type == 'dan' or self.agent_type == 'randomAction' or self.agent_type == 'dan_coverage':
             reward = self.get_prediction_reward(prediction[0], state)
@@ -266,7 +267,7 @@ class DAN:
         else:
             raise ValueError("Invalid self.agent_type")
 
-        return np.argmax(prediction[0]), reward
+        return np.argmax(prediction[0]), reward, new_rnn_state
 
 
     def print_variables(self, variable_list):

@@ -310,6 +310,26 @@ class Experiment(object):
         assert(len(stacked_obs) == self.test_ep_num)
         assert(np.shape(stacked_obs[0]) == (2, 1, self.nStates + self.nActions))
 
+        # Qx_rnn_state_arr = np.array([(np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size])) for i in range(self.test_ep_num)])
+        # Mx_rnn_state_arr = np.array([(np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size])) for i in range(self.test_ep_num)])
+        #
+        # Qy_rnn_state_arr = np.array([(np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size])) for i in range(self.test_ep_num)])
+        # My_rnn_state_arr = np.array([(np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size])) for i in range(self.test_ep_num)])
+
+        Qx_rnn_state_arr = {}
+        Mx_rnn_state_arr = {}
+        Qy_rnn_state_arr = {}
+        My_rnn_state_arr = {}
+
+        for i in range(self.test_ep_num):
+            Qx_rnn_state_arr[i] = (np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size]))
+            Mx_rnn_state_arr[i] = (np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size]))
+            Qy_rnn_state_arr[i] = (np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size]))
+            My_rnn_state_arr[i] = (np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size]))
+
+        assert (len(Qx_rnn_state_arr) == self.test_ep_num)
+        assert (np.shape(Mx_rnn_state_arr[0]) == (2, 1, agentX.h_size))
+
         # i = 0, ..., 11
         for i in range(0, test_env.max_ep_length):
             episode_step_count += 1
@@ -324,15 +344,19 @@ class Experiment(object):
                     # Agent take action
                     # first step
                     if i == 0:
-                        Qx = agentX.start_getQ(stacked_obs[p], is_train=False)  # (1, nActions)
-                        Qy = agentY.start_getQ(stacked_obs[p], is_train=False)  # (1, nActions)
+                        # rnn_stateX: (2,1,h_size)
+                        Qx, rnn_state_Qx = agentX.start_getQ(stacked_obs[p], Qx_rnn_state_arr[p], is_train=False)  # (1, nActions)
+                        Qy, rnn_state_Qy = agentY.start_getQ(stacked_obs[p], Qy_rnn_state_arr[p], is_train=False)  # (1, nActions)
 
                     # also take action in last step, because we are manually truncating the episode
                     else:
-                        Qx = agentX.step_getQ(stacked_obs[p], is_train=False)
-                        Qy = agentY.step_getQ(stacked_obs[p], is_train=False)
+                        Qx, rnn_state_Qx = agentX.step_getQ(stacked_obs[p], Qx_rnn_state_arr[p], is_train=False)
+                        Qy, rnn_state_Qy = agentY.step_getQ(stacked_obs[p], Qy_rnn_state_arr[p], is_train=False)
 
                     Qsum += (Qx + Qy) / 2
+
+                    Qx_rnn_state_arr[p] = rnn_state_Qx
+                    Qy_rnn_state_arr[p] = rnn_state_Qy
 
                 action = np.argmax(Qsum)
 
@@ -353,8 +377,11 @@ class Experiment(object):
                 next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
 
                 # Agent predict
-                _, rewardX = agentX.predict_test(next_obs, next_state)
-                _, rewardY = agentY.predict_test(next_obs, next_state)
+                _, rewardX, rnn_state_Mx = agentX.predict_test(next_obs, next_state, Mx_rnn_state_arr[p])
+                _, rewardY, rnn_state_My = agentY.predict_test(next_obs, next_state, My_rnn_state_arr[p])
+
+                Mx_rnn_state_arr[p] = rnn_state_Mx
+                My_rnn_state_arr[p] = rnn_state_My
 
                 if rewardX and rewardY:
                     reward = 1.0
