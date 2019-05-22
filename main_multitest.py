@@ -10,7 +10,7 @@ import time
 from config import Config
 from experiment import Experiment
 from environments.trackingEnv import SSenvReal
-from agents.dan import DAN
+from agents.dan_tracking import DAN
 
 def get_sweep_parameters(parameters, index):
     out = OrderedDict()
