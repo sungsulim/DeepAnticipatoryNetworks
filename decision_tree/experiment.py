@@ -36,6 +36,7 @@ class Experiment(object):
 
     def run(self):
 
+        self.test_count = 0
         self.train_step_count = 0
         episode_count = 0
 
@@ -59,8 +60,9 @@ class Experiment(object):
 
             self.cum_train_time += train_ep_time
             # self.cum_test_time += test_session_time
-            if episode_count % self.print_ep_freq == 0:
-                print("Train:: ep: {}, return: {}, steps: {}, elapsed: {}".format(episode_count, episode_return, num_steps, time.strftime("%H:%M:%S", time.gmtime(train_ep_time))))
+
+            # if episode_count % self.print_ep_freq == 0:
+            #     print("Train:: ep: {}, return: {}, steps: {}, elapsed: {}".format(episode_count, episode_return, num_steps, time.strftime("%H:%M:%S", time.gmtime(train_ep_time))))
 
             # Test
             if self.train_step_count % self.test_interval == 0:
@@ -158,10 +160,15 @@ class Experiment(object):
 
             test_session_time += test_elapsed_time
 
-            if i % self.print_ep_freq == 0:
-                print("Test:: ep: {}, return: {}, steps: {}, elapsed: {}".format(i, episode_return, num_steps, time.strftime("%H:%M:%S",time.gmtime(test_elapsed_time))))
+            # if i % self.print_ep_freq == 0:
+            #     print("Test:: ep: {}, return: {}, steps: {}, elapsed: {}".format(i, episode_return, num_steps, time.strftime("%H:%M:%S",time.gmtime(test_elapsed_time))))
 
         mean_return_per_episode = np.mean(temp_return_per_episode)
+
+        print("Test iter: {}, train_steps: {}, test_mean_return: {}, elapsed: {}".format(self.test_count, self.train_step_count, mean_return_per_episode,
+                                                                        time.strftime("%H:%M:%S", time.gmtime(
+                                                                            test_session_time))))
+        self.test_count += 1
 
         return test_session_time, mean_return_per_episode
 
