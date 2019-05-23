@@ -4,11 +4,8 @@ import os
 import json
 from collections import OrderedDict
 
-from datetime import datetime
-import time
-
-from config import Config
-from experiment import Experiment
+from sensor_selection.config import Config
+from sensor_selection.experiment import Experiment
 from environments.trackingEnv import SSenvReal
 from agents.dan_tracking import DAN
 

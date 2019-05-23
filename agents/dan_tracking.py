@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from utils.utils import ExperienceBuffer
+from utils.utils import ExperienceBuffer_Episode
 from agents.networks.qnet import Qnetwork
 from agents.networks.mnet import Mnetwork
 
@@ -26,7 +26,7 @@ class DAN:
         self.nActions = config.nActions
         self.nStates = config.nStates
 
-        self.replay_buffer = ExperienceBuffer(config.buffer_size, config.random_seed)
+        self.replay_buffer = ExperienceBuffer_Episode(config.buffer_size, config.random_seed)
 
         self.graph = tf.Graph()
 
