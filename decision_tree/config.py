@@ -33,14 +33,14 @@ class Config:
         self.agent_update_freq = 1
         self.buffer_size = 1000000  # 1mil episodes
 
-        self.fc_size1 = 64
+        self.fc_size1 = 128
 
-        self.qnet_lr = 0.01
-        self.mnet_lr = 0.01
+        self.qnet_lr = 0.001
+        self.mnet_lr = 0.001
 
         self.epsilon = 0.1
 
-        self.tau = 0.1
+        self.tau = 0.01
         self.gamma = 0.99
 
         self.print_ep_freq = 1
