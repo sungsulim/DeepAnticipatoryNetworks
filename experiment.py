@@ -288,7 +288,7 @@ class Experiment(object):
 
         return episode_return, episode_step_count
 
-    def multiperson_test(self):
+    def multiperson_test(self, test_batch_size):
 
         test_env = self.test_env
 
@@ -330,7 +330,7 @@ class Experiment(object):
         assert (len(Qx_rnn_state_arr) == self.test_ep_num)
         assert (np.shape(Mx_rnn_state_arr[0]) == (2, 1, agentX.h_size))
 
-        test_ep_batch = 5
+        test_ep_batch = test_batch_size
         for test_ep_start in range(0, self.test_ep_num, test_ep_batch):
             # i = 0, ..., 11
             for i in range(0, test_env.max_ep_length):

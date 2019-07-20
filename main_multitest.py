@@ -30,6 +30,7 @@ def main_multitest():
     parser.add_argument('--agent_json', type=str)
     parser.add_argument('--index', type=int)
     parser.add_argument('--num_runs', type=int)
+    parser.add_argument('--test_batch_size', type=int)
     args = parser.parse_args()
 
     # arg_params = {
@@ -113,7 +114,7 @@ def main_multitest():
         #     assert(mean_return_per_episode == saved_result[-1])
 
         # Test multiperson (all test tracks simultaneously)
-        episode_return_arr, episode_step_count = experiment.multiperson_test()
+        episode_return_arr, episode_step_count = experiment.multiperson_test(args.test_batch_size)
 
         multiperson_mean_return_per_run[r] += episode_return_arr
         print("Run {} multiperson test result".format(r))
@@ -125,12 +126,20 @@ def main_multitest():
 
     print(multiperson_return_mean)
 
+    total_return_per_run = np.sum(multiperson_mean_return_per_run, axis=1)
+    mean_return = np.mean(total_return_per_run, axis=0)
+    stderr_return = np.std(total_return_per_run, axis=0) / np.sqrt(args.num_runs)
+    print("Total return mean: {}, stderr: {}".format(mean_return, stderr_return))
+
     # save result
     save_prefix = '{}/{}_setting_{}'.format(save_dir, config.agent_type, SETTING_NUM)
     np.array(multiperson_return_mean).tofile("{}_multiperson_test_return_mean.txt".format(save_prefix), sep=',',
                                                   format='%15.8f')
     np.array(multiperson_return_stderr).tofile("{}_multiperson_test_return_stderr.txt".format(save_prefix), sep=',',
                                              format='%15.8f')
+
+    with open("{}_multiperson_test_total_mean_stderr.txt".format(save_prefix), "w") as writefile:
+        writefile.write("{}, {}".format(mean_return, stderr_return))
 
 
 if __name__ == '__main__':
