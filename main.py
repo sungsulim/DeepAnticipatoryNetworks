@@ -81,7 +81,7 @@ def runDAN(train_data, train_label, test_data, test_label, env_params):
 
 def main():
 
-    dataset_name = 'pokerhand'
+    dataset_name = 'iris'
     method_name = 'dan'
 
     test_ratio = 0.2
