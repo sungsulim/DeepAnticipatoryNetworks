@@ -49,7 +49,6 @@ def main():
         stderr = np.loadtxt(stderr_filename, delimiter=',')
 
         x_range = list(range(len(mean)))
-
         # Line graph
 
         # handle1, = plt.plot(x_range, mean)
@@ -76,7 +75,6 @@ def main():
         plt.xlabel('Step')
         plt.ylabel('Return')
         plt.title('Multi-person testing (Mean Return per step, {} Runs)'.format(num_runs))
-
         plt.xticks(index + 1.5 * bar_width, xval_arr)
         plt.yticks(yloc_arr, yloc_arr)
         plt.legend()

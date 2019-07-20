@@ -10,7 +10,7 @@ import time
 from config import Config
 from experiment import Experiment
 from environments.trackingEnv import SSenvReal
-from agents.dan import DAN
+from agents.dan_tracking import DAN
 
 def get_sweep_parameters(parameters, index):
     out = OrderedDict()
@@ -72,6 +72,7 @@ def main_multitest():
     test_track_idx = track_idx[:int(config.test_ep_num)]
     print("test track num: {}".format(len(test_track_idx)))  # 50
 
+<<<<<<< HEAD
     # (10, 12)
     multiperson_mean_return_per_run = np.zeros((args.num_runs, config.max_ep_length))
 
