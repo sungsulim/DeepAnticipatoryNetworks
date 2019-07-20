@@ -121,19 +121,19 @@ def main():
         raise ValueError("Dataset not found.")
 
     # Divide into train/test split
-    # idx_arr = list(range(len(data)))
-    # rng_state.shuffle(idx_arr)
-    #
-    # num_test = int(len(idx_arr) * test_ratio)
-    #
-    # train_idx = idx_arr[num_test:]
-    # test_idx = idx_arr[:num_test]
-    #
-    # train_data = data[train_idx]
-    # train_label = target[train_idx]
-    #
-    # test_data = data[test_idx]
-    # test_label = target[test_idx]
+    idx_arr = list(range(len(data)))
+    rng_state.shuffle(idx_arr)
+    
+    num_test = int(len(idx_arr) * test_ratio)
+    
+    train_idx = idx_arr[num_test:]
+    test_idx = idx_arr[:num_test]
+    
+    train_data = data[train_idx]
+    train_label = target[train_idx]
+    
+    test_data = data[test_idx]
+    test_label = target[test_idx]
 
     # Run Decision Tree
     if method_name == 'decision_tree':

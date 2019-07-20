@@ -9,26 +9,26 @@ class Config:
 
         # env params
 
-        # iris
-        # self.total_train_steps = 60000  # 100 epochs
-        # self.agent_pre_train_steps = 60  # 0.1 epoch
-        #
-        # self.test_ep_num = 30
-        # self.test_interval = 600  # every 150 samples (1 epoch)
-        #
-        # self.batch_size = 4
+        ###### iris
+        self.total_train_steps = 60000  # 100 epochs
+        self.agent_pre_train_steps = 60  # 0.1 epoch
+        
+        self.test_ep_num = 30
+        self.test_interval = 600  # every 150 samples (1 epoch)
+        
+        self.batch_size = 4
 
-        # pokerhand
+        ######  pokerhand
         # training: 25010
         # testing: 1000     # 1000000
 
-        self.total_train_steps = 2500000  # 100 epochs
-        self.agent_pre_train_steps = 2500  # 0.1 epoch
+        # self.total_train_steps = 2500000  # 100 epochs
+        # self.agent_pre_train_steps = 2500  # 0.1 epoch
 
-        self.test_ep_num = 500
-        self.test_interval = 25000  # (1 epoch)
+        # self.test_ep_num = 500
+        # self.test_interval = 25000  # (1 epoch)
 
-        self.batch_size = 10
+        # self.batch_size = 10
 
         self.agent_update_freq = 1
         self.buffer_size = 1000000  # 1mil episodes
