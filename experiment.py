@@ -45,11 +45,12 @@ class Experiment(object):
         start_run = datetime.now()
         print("Start run at: " + str(start_run) + '\n')
 
+        # Skip test
         # TODO: Disabled evaluation
         # test once at beginning
-        first_test_session_time, first_mean_return_per_episode = self.test()
-        self.cum_test_time += first_test_session_time
-        self.test_mean_return_per_episode.append(first_mean_return_per_episode)
+        # first_test_session_time, first_mean_return_per_episode = self.test()
+        # self.cum_test_time += first_test_session_time
+        # self.test_mean_return_per_episode.append(first_mean_return_per_episode)
 
         while (self.train_step_count['x'] + self.train_step_count['y'])/2 < self.total_train_steps:
             # runs a single episode and returns the accumulated return for that episode
@@ -71,11 +72,12 @@ class Experiment(object):
                     episode_count, episode_returnX, episode_returnY, num_stepsX, num_stepsY,
                     time.strftime("%H:%M:%S", time.gmtime(train_ep_time))))
 
+            # Skip test
             # Test
-            if (self.train_step_count['x'] + self.train_step_count['y'])/2 % self.test_interval == 0:
-                test_session_time, mean_return_per_episode = self.test()
-                self.cum_test_time += test_session_time
-                self.test_mean_return_per_episode.append(mean_return_per_episode)
+            # if (self.train_step_count['x'] + self.train_step_count['y'])/2 % self.test_interval == 0:
+            #     test_session_time, mean_return_per_episode = self.test()
+            #     self.cum_test_time += test_session_time
+            #     self.test_mean_return_per_episode.append(mean_return_per_episode)
 
             # force_terminated if total_train_steps reached and episode is truncated
             assert force_terminatedX == force_terminatedY

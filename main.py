@@ -8,6 +8,8 @@ from config import Config
 from experiment import Experiment
 from environments.trackingEnv import SSenvReal
 from agents.dan_tracking import DAN
+from agents.attention_tracking import Attention
+
 
 def get_sweep_parameters(parameters, index):
     out = OrderedDict()
@@ -123,8 +125,16 @@ def main():
 
 
     # create agent
-    agentX = DAN(config, 'x')
-    agentY = DAN(config, 'y')
+
+
+    if config.agent_type == 'attention':
+        agentX = Attention(config, 'x')
+        agentY = Attention(config, 'y')
+
+    else:
+        assert(config.agent_type == 'dan' or config.agent_type == 'coverage' or config.agent_type == 'dan_coverage' or config.agent_type == 'randomAction')
+        agentX = DAN(config, 'x')
+        agentY = DAN(config, 'y')
 
     # create experiment
     experiment = Experiment(train_env={'x': train_envX, 'y': train_envY},

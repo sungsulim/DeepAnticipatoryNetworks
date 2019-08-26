@@ -89,6 +89,9 @@ class DAN:
             else:
                 raise ValueError("Invalid self.agent_type")
 
+        else:
+            raise ValueError("It isn't used during evaluation")
+
         return action
 
     def step(self, raw_obs, is_pretraining, is_train):
@@ -124,6 +127,8 @@ class DAN:
 
             else:
                 raise ValueError("Invalid self.agent_type")
+        else:
+            raise ValueError("It isn't used during evaluation")
 
         return action
 

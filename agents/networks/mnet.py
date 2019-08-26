@@ -38,7 +38,6 @@ class Mnetwork:
 
             input_obs = tf.placeholder(tf.float32, shape=(None, self.nStates + self.nActions))
 
-            # 4 fc layers (1 more layer than qnet)
             net = tf.contrib.layers.fully_connected(input_obs, self.fc_size1, activation_fn=tf.nn.relu,
                                                     weights_initializer=tf.contrib.layers.variance_scaling_initializer(
                                                         factor=1.0, mode="FAN_IN", uniform=True),

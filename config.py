@@ -4,7 +4,7 @@ class Config:
     def __init__(self):
 
         # set by command line args
-        self.agent_type = None  # 'dan', 'dan_coverage', 'randomAction', 'coverage'
+        self.agent_type = None  # 'dan', 'dan_coverage', 'randomAction', 'coverage', 'attention'
         self.random_seed = None
 
         # env params
@@ -35,7 +35,7 @@ class Config:
 
         self.nStates = 51
         self.nActions = 10
-        self.print_ep_freq = 500
+        self.print_ep_freq = 100
 
     # add custom setting
     def merge_config(self, custom_config):

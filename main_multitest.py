@@ -72,7 +72,6 @@ def main_multitest():
     test_track_idx = track_idx[:int(config.test_ep_num)]
     print("test track num: {}".format(len(test_track_idx)))  # 50
 
-<<<<<<< HEAD
     # (10, 12)
     multiperson_mean_return_per_run = np.zeros((args.num_runs, config.max_ep_length))
 
