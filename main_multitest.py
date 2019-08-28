@@ -11,6 +11,7 @@ from config import Config
 from experiment import Experiment
 from environments.trackingEnv import SSenvReal
 from agents.dan_tracking import DAN
+from agents.attention_tracking import Attention
 
 def get_sweep_parameters(parameters, index):
     out = OrderedDict()
@@ -79,8 +80,13 @@ def main_multitest():
     test_env = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
 
     # create agent
-    agentX = DAN(config, 'x')
-    agentY = DAN(config, 'y')
+
+    if config.agent_type == 'attention':
+        agentX = Attention(config, 'x')
+        agentY = Attention(config, 'y')
+    else:
+        agentX = DAN(config, 'x')
+        agentY = DAN(config, 'y')
 
     for r in range(args.num_runs):
         print("Run {}".format(r))

@@ -338,7 +338,7 @@ class Experiment(object):
             for i in range(0, test_env.max_ep_length):
                 episode_step_count += 1
                 # print("current step: {}".format(episode_step_count))
-                if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
+                if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage' or self.agent_type == 'attention':
 
                     # For each person in test tracks, get Q val
                     Qsum = np.zeros((1, self.nActions))
