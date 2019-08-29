@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 
-class AttentionNetwork:
+class SharedDANNetwork:
     def __init__(self, sess, config):
 
         self.sess = sess
@@ -22,16 +22,16 @@ class AttentionNetwork:
         # create network
         self.input_obs, self.input_rnn_state, self.current_rnn_state, \
             self.batch_size, self.train_length, self.salience, \
-            self.Qout, self.argmaxQ, self.prediction = self.build_network(scope_name='attentionnet')
+            self.Qout, self.argmaxQ, self.prediction = self.build_network(scope_name='shared_dannet')
 
-        self.net_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='attentionnet')
+        self.net_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='shared_dannet')
 
         # create target network
         self.target_input_obs, self.target_input_rnn_state, self.target_current_rnn_state,  \
             self.target_batch_size, self.target_train_length, self.target_salience, \
-            self.target_Qout, self.target_argmaxQ, _ = self.build_network(scope_name='target_attentionnet')
+            self.target_Qout, self.target_argmaxQ, _ = self.build_network(scope_name='target_shared_dannet')
 
-        self.target_net_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target_attentionnet')
+        self.target_net_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target_shared_dannet')
 
         # update target network Ops
         self.update_target_net_params = [
@@ -295,7 +295,7 @@ class AttentionNetwork:
         self.sess.run(self.update_target_net_params)
 
     def save_network(self, save_dir, xory):
-        self.saver.save(self.sess, '{}_attentionnet{}'.format(save_dir, xory))
+        self.saver.save(self.sess, '{}_shared_dannet{}'.format(save_dir, xory))
 
     def restore_network(self, load_dir, xory):
-        self.saver.restore(self.sess, '{}_attentionnet{}'.format(load_dir, xory))
+        self.saver.restore(self.sess, '{}_shared_dannet{}'.format(load_dir, xory))

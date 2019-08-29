@@ -5,15 +5,17 @@ import argparse
 use_label = True
 num_runs = 25
 
-agent_type_arr = ['dan', 'shared_dan', 'coverage', 'randomAction']
-agent_best_setting = [0, 4, 0, 0]
+# agent_type_arr = ['dan', 'dan_coverage', 'coverage', 'randomAction', 'shared_dan']
+# agent_best_setting = [0, 0, 0, 0, 4]
+
+agent_type_arr = ['dan', 'coverage', 'randomAction', 'shared_dan']
+agent_best_setting = [0, 0, 0, 4]
 
 ma_window = 100
 
 yloc_arr = list(range(0, 16, 2))
 
 ep_length = 12
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -33,7 +35,7 @@ def main():
 
     # create plot
     fig, ax = plt.subplots(figsize=(12, 6))
-    index = np.arange(5)
+    index = np.arange(ep_length)
     bar_width = 0.18
     opacity = 0.8
 
@@ -43,24 +45,13 @@ def main():
         best_idx = agent_best_setting[idx]
 
         # results
+        mean_filename = '{}/{}_setting_{}_multiperson_test_return_mean.txt'.format(dir_name, agent_type, best_idx)
+        stderr_filename = '{}/{}_setting_{}_multiperson_test_return_stderr.txt'.format(dir_name, agent_type, best_idx)
 
-        # Each step
-        # mean_filename = '{}/{}_setting_{}_multiperson_test_return_mean.txt'.format(dir_name, agent_type, best_idx)
-        # stderr_filename = '{}/{}_setting_{}_multiperson_test_return_stderr.txt'.format(dir_name, agent_type, best_idx)
+        mean = np.loadtxt(mean_filename, delimiter=',')
+        stderr = np.loadtxt(stderr_filename, delimiter=',')
 
-        # Total return per episode
-        mean_arr = []
-        stderr_arr = []
-
-        for batchsize in [1,2,5,10,20]:
-            mean_stderr_filename = '{}/{}_setting_{}_batchsize_{}_multiperson_test_total_mean_stderr.txt'.format(dir_name, agent_type, best_idx, batchsize)
-            mean, stderr = np.loadtxt(mean_stderr_filename, delimiter=',')
-
-            mean_arr.append(mean * batchsize/500.0)
-            stderr_arr.append(stderr)
-
-        # x_range = list(range(len(mean_arr)))
-
+        x_range = list(range(len(mean)))
         # Line graph
 
         # handle1, = plt.plot(x_range, mean)
@@ -72,22 +63,21 @@ def main():
 
         # Bar graph
         # data to plot
-        plt.bar(index + idx * bar_width, mean_arr, bar_width,
+        plt.bar(index + idx * bar_width, mean, bar_width,
                 alpha=opacity,
                 # color='b',
                 label=agent_type)
 
-    # xloc_arr = list(range(0, 12, 1))
-    yloc_arr = list(range(0,120,20))
-    xval_arr = [1,2,5,10,20]
+    xloc_arr = list(range(0, 12, 1))
+    yloc_arr = [50, 100, 150, 200, 250]
+    xval_arr = list(range(1, 13, 1))
 
-    plt.ylim([0, 110])
+    plt.ylim([50, 260])
 
     if use_label:
-        plt.xlabel('Num. Tracked People')
-        plt.ylabel('Correct Predictions per Episode')
-        plt.title('Correct Predictions in Multi-person Tracking ({} Runs)'.format(num_runs))
-
+        plt.xlabel('Step')
+        plt.ylabel('Return')
+        plt.title('Multi-person testing (Mean Return per step, {} Runs)'.format(num_runs))
         plt.xticks(index + 1.5 * bar_width, xval_arr)
         plt.yticks(yloc_arr, yloc_arr)
         plt.legend()

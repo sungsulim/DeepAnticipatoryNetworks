@@ -149,8 +149,11 @@ class Experiment(object):
             next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
             # print("env step: augmented n_obs", np.shape(next_obs), next_obs)
 
+            is_terminal = False
+            if i == train_env.max_ep_length:
+                is_terminal = True
             # Agent predict
-            reward = agent.predict(next_obs, next_state)
+            reward = agent.predict(next_obs, next_state, is_terminal)
             # print("reward", np.shape(reward), reward)
 
             # Agent update
@@ -195,6 +198,7 @@ class Experiment(object):
     # Runs a single episode (TEST)
     def run_episode_test(self, track_idx):
 
+        raise NotImplementedError("run_episode_test shouldn't be used")
         # if self.train_step_count['x'] > 24000:
         #     print("start episode test")
         # self.test_rng = np.random.RandomState(0)
@@ -380,9 +384,13 @@ class Experiment(object):
                     # Augment next_obs
                     next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
 
+                    is_terminal = False
+                    if i == test_env.max_ep_length:
+                        is_terminal = True
+
                     # Agent predict
-                    _, rewardX, rnn_state_Mx = agentX.predict_test(next_obs, next_state, Mx_rnn_state_arr[p])
-                    _, rewardY, rnn_state_My = agentY.predict_test(next_obs, next_state, My_rnn_state_arr[p])
+                    _, rewardX, rnn_state_Mx = agentX.predict_test(next_obs, next_state, Mx_rnn_state_arr[p], is_terminal)
+                    _, rewardY, rnn_state_My = agentY.predict_test(next_obs, next_state, My_rnn_state_arr[p], is_terminal)
 
                     Mx_rnn_state_arr[p] = rnn_state_Mx
                     My_rnn_state_arr[p] = rnn_state_My
