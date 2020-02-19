@@ -254,7 +254,7 @@ class DAN:
 
         return Qval, new_rnn_state
 
-    def predict_test(self, raw_obs, raw_state, rnn_state):
+    def predict_test(self, raw_obs, raw_state, rnn_state, _):
         # print("raw_obs", raw_obs)
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)

@@ -6,9 +6,9 @@ import argparse
 train_plot_idx_arr = []
 test_plot_idx_arr = []
 
-agent_type_arr = ['dan']  # , 'randomAction', 'coverage', 'dan_coverage']
-num_settings = 1
-num_runs = 10
+agent_type_arr = ['shared_attention']  # , 'randomAction', 'coverage', 'dan_coverage']
+num_settings = 9
+num_runs = 25
 
 ma_window = 100
 

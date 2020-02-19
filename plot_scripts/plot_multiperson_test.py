@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
+
 use_label = True
 num_runs = 25
 
-agent_type_arr = ['dan', 'shared_dan', 'coverage', 'randomAction']
-agent_best_setting = [0, 4, 0, 0]
+agent_type_arr = ['dan', 'shared_dan', 'dan_coverage', 'coverage', 'randomAction']
+agent_best_setting = [0, 4, 0, 0, 0]
 
 ma_window = 100
 
@@ -14,6 +15,11 @@ yloc_arr = list(range(0, 16, 2))
 
 ep_length = 12
 
+color_arr = ['#1f77b4', '#9467bd', '#ff7f0e', '#2ca02c', '#d62728', '#8c564b', '#e377c2', '#7f7f7f']
+
+
+# black-n-white compatible
+color_arr = ['#16454E', '#2B6F39', '#747A32', '#D38FC5', '#C2C1F2', '#C6E2E6'] # '#C1796F',
 
 def main():
     parser = argparse.ArgumentParser()
@@ -34,9 +40,8 @@ def main():
     # create plot
     fig, ax = plt.subplots(figsize=(12, 6))
     index = np.arange(5)
-    bar_width = 0.18
+    bar_width = 0.16
     opacity = 0.8
-
 
     for idx, agent_type in enumerate(agent_type_arr):
 
@@ -74,7 +79,7 @@ def main():
         # data to plot
         plt.bar(index + idx * bar_width, mean_arr, bar_width,
                 alpha=opacity,
-                # color='b',
+                color=color_arr[idx],
                 label=agent_type)
 
     # xloc_arr = list(range(0, 12, 1))
@@ -88,12 +93,12 @@ def main():
         plt.ylabel('Correct Predictions per Episode')
         plt.title('Correct Predictions in Multi-person Tracking ({} Runs)'.format(num_runs))
 
-        plt.xticks(index + 1.5 * bar_width, xval_arr)
+        plt.xticks(index + 2 * bar_width, xval_arr)
         plt.yticks(yloc_arr, yloc_arr)
         plt.legend()
 
     else:
-        plt.xticks(index + 1.5 * bar_width, [])
+        plt.xticks(index + 2 * bar_width, [])
         plt.yticks(yloc_arr, [])
 
     # plt.legend(handle_arr, label_arr)
