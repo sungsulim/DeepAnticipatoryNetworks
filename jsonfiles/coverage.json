@@ -1,9 +1,11 @@
 {
   "agent_type": ["coverage"],
 
-  "qnet_lr": [1e-3],
+  "qnet_lr": [1e-1, 1e-2, 1e-3],
   "mnet_lr": [0],
   "h_size": [128],
 
-  "epsilon": [0.1]
+  "epsilon": [0.1, 0.3, 0.5],
+
+  "use_terminal_reward_setting": [0]
 }

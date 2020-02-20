@@ -8,7 +8,7 @@ from config import Config
 from experiment import Experiment
 from environments.trackingEnv import SSenvReal
 from agents.dan_tracking import DAN
-from agents.shared_dan_tracking import SharedDAN
+from agents.dan_shared_tracking import DANShared
 
 
 def get_sweep_parameters(parameters, index):
@@ -127,9 +127,9 @@ def main():
     # create agent
 
 
-    if config.agent_type == 'shared_dan' or config.agent_type == 'shared_attention':
-        agentX = SharedDAN(config, 'x')
-        agentY = SharedDAN(config, 'y')
+    if config.agent_type == 'dan_shared' or config.agent_type == 'shared_attention':
+        agentX = DANShared(config, 'x')
+        agentY = DANShared(config, 'y')
 
     else:
         assert(config.agent_type == 'dan' or config.agent_type == 'coverage' or config.agent_type == 'dan_coverage' or config.agent_type == 'randomAction')

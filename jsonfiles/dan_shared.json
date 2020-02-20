@@ -1,5 +1,5 @@
 {
-  "agent_type": ["dan"],
+  "agent_type": ["dan_shared"],
 
   "qnet_lr": [1e-1, 1e-2, 1e-3],
   "mnet_lr": [1e-1, 1e-2, 1e-3],

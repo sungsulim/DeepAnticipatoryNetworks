@@ -2,10 +2,10 @@ import numpy as np
 import tensorflow as tf
 from utils.utils import ExperienceBuffer
 
-from agents.networks.shared_dannet import SharedDANNetwork
+from agents.networks.dan_shared_net import DANSharedNetwork
 
 
-class SharedDAN:
+class DANShared:
     def __init__(self, config, xory):
 
         self.agent_type = config.agent_type  # 'attention'
@@ -32,29 +32,29 @@ class SharedDAN:
 
         self.graph = tf.Graph()
 
-        self.shared_dannet_current_rnn_state = None
+        self.dan_shared_net_current_rnn_state = None
 
         # Only for test
-        self.test_shared_dannet_current_rnn_state = None
+        self.test_dan_shared_net_current_rnn_state = None
 
         # create Network
         with self.graph.as_default():
             tf.set_random_seed(config.random_seed)
             self.sess = tf.Session()
-            self.shared_dannet = SharedDANNetwork(self.sess, config)
+            self.dan_shared_net = DANSharedNetwork(self.sess, config)
 
             self.sess.run(tf.global_variables_initializer())
-            self.shared_dannet.init_target_network()
+            self.dan_shared_net.init_target_network()
 
     def start(self, raw_obs, is_pretraining, is_train):
         # obs: (1,31) np.zero observation
         obs = self.select_xy(raw_obs)
 
         # reset qnet, mnet current rnn state
-        self.shared_dannet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
+        self.dan_shared_net_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
 
-        greedy_action, rnn_state = self.shared_dannet.get_greedy_action(obs, self.shared_dannet_current_rnn_state)
-        self.shared_dannet_current_rnn_state = rnn_state
+        greedy_action, rnn_state = self.dan_shared_net.get_greedy_action(obs, self.dan_shared_net_current_rnn_state)
+        self.dan_shared_net_current_rnn_state = rnn_state
 
         if is_train:
             # same as 'dan', use e-greedy
@@ -72,8 +72,8 @@ class SharedDAN:
         # obs: (1, 31)
         obs = self.select_xy(raw_obs)
 
-        greedy_action, rnn_state = self.shared_dannet.get_greedy_action(obs, self.shared_dannet_current_rnn_state)
-        self.shared_dannet_current_rnn_state = rnn_state
+        greedy_action, rnn_state = self.dan_shared_net.get_greedy_action(obs, self.dan_shared_net_current_rnn_state)
+        self.dan_shared_net_current_rnn_state = rnn_state
 
         if is_train:
 
@@ -99,10 +99,10 @@ class SharedDAN:
         if self.use_terminal_reward_setting and not is_terminal:
             reward = 0
         else:
-            prediction, _ = self.shared_dannet.get_prediction(obs, self.shared_dannet_current_rnn_state)
+            prediction, _ = self.dan_shared_net.get_prediction(obs, self.dan_shared_net_current_rnn_state)
 
             # Don't save rnn_state, will update when getting action in next step
-            # self.shared_dannet_current_rnn_state = rnn_state
+            # self.dan_shared_net_current_rnn_state = rnn_state
 
             # print('agent_prediction', np.shape(prediction), prediction)
             # print("argmax_prediction", np.argmax(prediction))
@@ -150,10 +150,10 @@ class SharedDAN:
             train_batch[i][5] = self.select_xy(train_batch[i][5])
 
         # perform update
-        self.shared_dannet.update_q(train_batch, self.trace_length, self.batch_size)
-        self.shared_dannet.update_m(train_batch, self.trace_length, self.batch_size)
+        self.dan_shared_net.update_q(train_batch, self.trace_length, self.batch_size)
+        self.dan_shared_net.update_m(train_batch, self.trace_length, self.batch_size)
 
-        self.shared_dannet.update_target_network()
+        self.dan_shared_net.update_target_network()
 
         return
 
@@ -174,7 +174,7 @@ class SharedDAN:
         # self.test_qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
         # self.test_mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
 
-        Qval, new_rnn_state = self.shared_dannet.get_Qval(obs, rnn_state)
+        Qval, new_rnn_state = self.dan_shared_net.get_Qval(obs, rnn_state)
         # self.test_qnet_current_rnn_state = rnn_state
 
         return Qval, new_rnn_state
@@ -184,7 +184,7 @@ class SharedDAN:
         # obs: (1, 31)
         obs = self.select_xy(raw_obs)
 
-        Qval, new_rnn_state = self.shared_dannet.get_Qval(obs, rnn_state)
+        Qval, new_rnn_state = self.dan_shared_net.get_Qval(obs, rnn_state)
         # self.test_qnet_current_rnn_state = rnn_state
 
         return Qval, new_rnn_state
@@ -201,7 +201,7 @@ class SharedDAN:
 
         else:
             # prediction, rnn_state = self.mnet.get_prediction(obs, self.test_mnet_current_rnn_state)
-            prediction_arr, new_rnn_state = self.shared_dannet.get_prediction(obs, rnn_state)
+            prediction_arr, new_rnn_state = self.dan_shared_net.get_prediction(obs, rnn_state)
             # self.test_mnet_current_rnn_state = rnn_state
 
             # reward same as 'dan'
@@ -226,7 +226,7 @@ class SharedDAN:
                 return
 
     def save_network(self, save_dir, xory):
-        self.shared_dannet.save_network(save_dir, xory)
+        self.dan_shared_net.save_network(save_dir, xory)
 
     def restore_network(self, load_dir, xory):
-        self.shared_dannet.restore_network(load_dir, xory)
+        self.dan_shared_net.restore_network(load_dir, xory)

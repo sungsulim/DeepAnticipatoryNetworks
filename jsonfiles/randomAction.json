@@ -1,9 +1,0 @@
-{
-  "agent_type": ["randomAction"],
-
-  "qnet_lr": [0],
-  "mnet_lr": [1e-3],
-  "h_size": [128],
-
-  "epsilon": [0.0]
-}
