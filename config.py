@@ -24,12 +24,6 @@ class Config:
 
         self.fc_size1 = 60
         self.fc_size2 = 30
-        # agent params
-        # self.epsilon = 0.3
-
-        # self.qnet_lr = 0.001
-        # self.mnet_lr = 0.001
-        # self.h_size = 512  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
         self.tau = 0.01
         self.gamma = 0.99
 

@@ -2,7 +2,8 @@
 
 AGENT_NAME=$1
 
-source /Users/maclapuser/Documents/DeepAnticipatoryNetworks/venv/bin/activate
+#source /Users/maclapuser/Documents/DeepAnticipatoryNetworks/venv/bin/activate
+source venv/bin/activate
 
 start_idx=$2
 increment=$3
