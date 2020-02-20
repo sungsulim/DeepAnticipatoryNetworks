@@ -132,7 +132,7 @@ def main():
         agentY = DANShared(config, 'y')
 
     else:
-        assert(config.agent_type == 'dan' or config.agent_type == 'coverage' or config.agent_type == 'dan_coverage' or config.agent_type == 'randomAction')
+        assert(config.agent_type == 'dan' or config.agent_type == 'coverage' or config.agent_type == 'dan_coverage' or config.agent_type == 'random_policy')
         agentX = DAN(config, 'x')
         agentY = DAN(config, 'y')
 
