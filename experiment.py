@@ -55,10 +55,7 @@ class Experiment(object):
         while (self.train_step_count['x'] + self.train_step_count['y'])/2 < self.total_train_steps:
             # runs a single episode and returns the accumulated return for that episode
             train_start_time = time.time()
-            # print('running episode x')
             episode_returnX, num_stepsX, force_terminatedX = self.run_episode_train('x')
-
-            # print('running episode y')
             episode_returnY, num_stepsY, force_terminatedY = self.run_episode_train('y')
 
             train_end_time = time.time()
@@ -131,30 +128,23 @@ class Experiment(object):
             # first step
             if i == 0:
                 action = agent.start(obs, is_pretraining, is_train=True)
-                # print("agent start", np.shape(action), action)
 
             # also take action in last step, because we are manually truncating the episode
             else:
                 action = agent.step(obs, is_pretraining, is_train=True)
-                # print("agent step", np.shape(action), action)
 
             # Env step: gives next_state, next_obs
             next_state, next_obs, done = train_env.step(action)
 
-            # print("env step: ns", np.shape(next_state), next_state)
-            # print("env step: n_obs", np.shape(next_obs), next_obs)
-
             # Augment next_obs
             action_one_hot = np.reshape(np.array([int(i == action) for i in range(agent.nActions)]), (1, agent.nActions))
             next_obs = np.array([np.concatenate((o, action_one_hot), axis=1) for o in next_obs])
-            # print("env step: augmented n_obs", np.shape(next_obs), next_obs)
 
             is_terminal = False
             if i == train_env.max_ep_length:
                 is_terminal = True
             # Agent predict
             reward = agent.predict(next_obs, next_state, is_terminal)
-            # print("reward", np.shape(reward), reward)
 
             # Agent update
             if (not is_pretraining) and \
@@ -182,7 +172,6 @@ class Experiment(object):
             test_end_time = time.time()
 
             temp_return_per_episode.append(episode_return)
-            # temp_return_per_episodeY.append(episode_returnY)
 
             test_elapsed_time = test_end_time - test_start_time
 
@@ -315,12 +304,6 @@ class Experiment(object):
 
         assert(len(stacked_obs) == self.test_ep_num)
         assert(np.shape(stacked_obs[0]) == (2, 1, self.nStates + self.nActions))
-
-        # Qx_rnn_state_arr = np.array([(np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size])) for i in range(self.test_ep_num)])
-        # Mx_rnn_state_arr = np.array([(np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size])) for i in range(self.test_ep_num)])
-        #
-        # Qy_rnn_state_arr = np.array([(np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size])) for i in range(self.test_ep_num)])
-        # My_rnn_state_arr = np.array([(np.zeros([1, agentX.h_size]), np.zeros([1, agentX.h_size])) for i in range(self.test_ep_num)])
 
         Qx_rnn_state_arr = {}
         Mx_rnn_state_arr = {}

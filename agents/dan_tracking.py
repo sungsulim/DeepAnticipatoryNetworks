@@ -49,11 +49,6 @@ class DAN:
             self.sess.run(tf.global_variables_initializer())
             self.qnet.init_target_network()
 
-        # print("===== INIT QNET")
-        # self.print_variables(self.qnet.net_params)
-        # print("===== INIT TARGET QNET")
-        # self.print_variables(self.qnet.target_net_params)
-
     def start(self, raw_obs, is_pretraining, is_train):
         # obs: (1,31) np.zero observation
         obs = self.select_xy(raw_obs)
@@ -62,15 +57,9 @@ class DAN:
         self.qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
         self.mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
 
-        # print("###########")
-        # print("agent start rnn_state", self.qnet_current_rnn_state)
-        # print()
         greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
         self.qnet_current_rnn_state = rnn_state
-        # print()
-        # print("agent start after greedy action rnn_state", self.qnet_current_rnn_state)
-        # input()
-        # print("###########")
+
         if is_train:
 
             if self.agent_type == 'dan' \
@@ -100,15 +89,9 @@ class DAN:
         # obs: (1, 31)
         obs = self.select_xy(raw_obs)
 
-        # print("###########")
-        # print("agent step rnn_state", self.qnet_current_rnn_state)
-        # print()
         greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
         self.qnet_current_rnn_state = rnn_state
-        # print()
-        # print("agent step after greedy action rnn_state", self.qnet_current_rnn_state)
-        # print("###########")
-        # input()
+
         if is_train:
 
             if self.agent_type == 'dan' \
@@ -145,9 +128,6 @@ class DAN:
             prediction, rnn_state = self.mnet.get_prediction(obs, self.mnet_current_rnn_state)
             self.mnet_current_rnn_state = rnn_state
 
-            # print('agent_prediction', np.shape(prediction), prediction)
-            # print("argmax_prediction", np.argmax(prediction))
-
             if self.agent_type == 'dan' or self.agent_type == 'random_policy':
                 reward = self.get_prediction_reward(prediction[0], state)
 
@@ -165,8 +145,8 @@ class DAN:
         return reward
 
     def get_prediction_reward(self, pred_s, true_s):
-        # true_s : 0~20
-        # pred_s : an array of size (21,) containing prediction values with highest being most probable
+        # true_s : 0~50
+        # pred_s : an array of size (51,) containing prediction values with highest being most probable
         if np.argmax(pred_s) == true_s:
             reward = 1.0
         else:
@@ -202,25 +182,11 @@ class DAN:
             train_batch[i][3] = self.select_xy(train_batch[i][3])
             train_batch[i][5] = self.select_xy(train_batch[i][5])
 
-
         # perform update
         if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
-            # print("===== BEFORE UPDATE QNET")
-            # self.print_variables(self.qnet.net_params)
-            # print("===== BEFORE UPDATE TARGET QNET")
-            # self.print_variables(self.qnet.target_net_params)
-            # print("@@@@@@@@")
 
             self.qnet.update(train_batch, self.trace_length, self.batch_size)
             self.qnet.update_target_network()
-
-            # print("===== AFTER UPDATE QNET")
-            # self.print_variables(self.qnet.net_params)
-            # print()
-            # print("===== AFTER UPDATE TARGET QNET")
-            # self.print_variables(self.qnet.target_net_params)
-            #
-            # exit()
 
         if self.agent_type == 'dan' or self.agent_type == 'random_policy' or self.agent_type == 'dan_coverage':
             self.mnet.update(train_batch, self.trace_length, self.batch_size)
@@ -240,12 +206,7 @@ class DAN:
         # obs: (1,31) np.zero observation
         obs = self.select_xy(raw_obs)
 
-        # reset qnet, mnet current rnn state
-        # self.test_qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
-        # self.test_mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
-
         Qval, new_rnn_state = self.qnet.get_Qval(obs, rnn_state)
-        # self.test_qnet_current_rnn_state = rnn_state
 
         return Qval, new_rnn_state
 
@@ -255,18 +216,14 @@ class DAN:
         obs = self.select_xy(raw_obs)
 
         Qval, new_rnn_state = self.qnet.get_Qval(obs, rnn_state)
-        # self.test_qnet_current_rnn_state = rnn_state
 
         return Qval, new_rnn_state
 
     def predict_test(self, raw_obs, raw_state, rnn_state, _):
-        # print("raw_obs", raw_obs)
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)
 
-        # prediction, rnn_state = self.mnet.get_prediction(obs, self.test_mnet_current_rnn_state)
         prediction, new_rnn_state = self.mnet.get_prediction(obs, rnn_state)
-        # self.test_mnet_current_rnn_state = rnn_state
 
         if self.agent_type == 'dan' or self.agent_type == 'random_policy' or self.agent_type == 'dan_coverage':
             reward = self.get_prediction_reward(prediction[0], state)

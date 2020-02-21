@@ -4,7 +4,7 @@ class Config:
     def __init__(self):
 
         # set by command line args
-        self.agent_type = None  # 'dan', 'dan_coverage', 'randomAction', 'coverage', 'attention'
+        self.agent_type = None  # 'dan', 'dan_coverage', 'random_policy', 'coverage', 'dan_shared'
         self.random_seed = None
 
         # env params

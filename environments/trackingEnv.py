@@ -60,7 +60,7 @@ class SSenvReal:
         done = False
 
         # next_state_cell: (2,1) : discretized cell
-        # (next_obsX, next_obsY) : (2,1,21) : formatted observations one-hot
+        # (next_obsX, next_obsY) : (2,1, nStates) : formatted observations one-hot
         return next_state, (next_obs_one_hotX, next_obs_one_hotY), done
 
     def format_one_hot(self, cell):

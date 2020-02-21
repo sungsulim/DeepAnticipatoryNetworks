@@ -8,7 +8,8 @@ from config import Config
 from experiment import Experiment
 from environments.trackingEnv import SSenvReal
 from agents.dan_tracking import DAN
-from agents.shared_dan_tracking import SharedDAN
+from agents.dan_shared_tracking import DANShared
+
 
 def get_sweep_parameters(parameters, index):
     out = OrderedDict()
@@ -28,13 +29,8 @@ def main_multitest():
     parser.add_argument('--agent_json', type=str)
     parser.add_argument('--index', type=int)
     parser.add_argument('--num_runs', type=int)
-    # parser.add_argument('--test_batch_size', type=int)
-    args = parser.parse_args()
 
-    # arg_params = {
-    #     "agent_type": args.agent_type,
-    #     "random_seed": int(args.random_seed)
-    # }
+    args = parser.parse_args()
 
     with open(args.agent_json, 'r') as agent_dat:
         agent_json = json.load(agent_dat, object_pairs_hook=OrderedDict)
@@ -47,9 +43,7 @@ def main_multitest():
     RUN_NUM = int(args.index / total_num_sweeps)
     SETTING_NUM = args.index % total_num_sweeps
 
-
     config = Config()
-    # config.merge_config(arg_params)
     config.merge_config(agent_params)
 
     print("Testing {} Setting {}".format(config.agent_type, SETTING_NUM))
@@ -62,7 +56,7 @@ def main_multitest():
     # Fixed random state for train/test split
     rng_state = np.random.RandomState(9999)
 
-    ####### New data
+    # Load data
     dummy_env = SSenvReal(config, 'data/sampled_tracks_new', [])
 
     track_idx = list(range(len(dummy_env.tracks)))
@@ -85,9 +79,9 @@ def main_multitest():
         test_env = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
 
         # create agent
-        if config.agent_type == 'shared_dan' or config.agent_type == 'shared_attention':
-            agentX = SharedDAN(config, 'x')
-            agentY = SharedDAN(config, 'y')
+        if config.agent_type == 'dan_shared':  # or config.agent_type == 'shared_attention':
+            agentX = DANShared(config, 'x')
+            agentY = DANShared(config, 'y')
         else:
             agentX = DAN(config, 'x')
             agentY = DAN(config, 'y')

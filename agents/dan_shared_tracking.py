@@ -18,7 +18,6 @@ class DANShared:
         self.batch_size = config.batch_size
         self.trace_length = config.trace_length
 
-        # self.pre_train_steps = config.pre_train_steps
         self.update_reward = config.update_reward
         self.epsilon = config.epsilon
         self.gamma = config.gamma
@@ -47,7 +46,7 @@ class DANShared:
             self.dan_shared_net.init_target_network()
 
     def start(self, raw_obs, is_pretraining, is_train):
-        # obs: (1,31) np.zero observation
+        # obs: (1,61) np.zero observation
         obs = self.select_xy(raw_obs)
 
         # reset qnet, mnet current rnn state
@@ -69,7 +68,7 @@ class DANShared:
         return action
 
     def step(self, raw_obs, is_pretraining, is_train):
-        # obs: (1, 31)
+        # obs: (1, 61)
         obs = self.select_xy(raw_obs)
 
         greedy_action, rnn_state = self.dan_shared_net.get_greedy_action(obs, self.dan_shared_net_current_rnn_state)
@@ -92,7 +91,6 @@ class DANShared:
         return action
 
     def predict(self, raw_obs, raw_state, is_terminal):
-        # print("raw_obs", raw_obs)
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)
 
@@ -101,20 +99,14 @@ class DANShared:
         else:
             prediction, _ = self.dan_shared_net.get_prediction(obs, self.dan_shared_net_current_rnn_state)
 
-            # Don't save rnn_state, will update when getting action in next step
-            # self.dan_shared_net_current_rnn_state = rnn_state
-
-            # print('agent_prediction', np.shape(prediction), prediction)
-            # print("argmax_prediction", np.argmax(prediction))
-
             # same as 'dan'
             reward = self.get_prediction_reward(prediction[0], state)
 
         return reward
 
     def get_prediction_reward(self, pred_s, true_s):
-        # true_s : 0~20
-        # pred_s : an array of size (21,) containing prediction values with highest being most probable
+        # true_s : 0~50
+        # pred_s : an array of size (51,) containing prediction values with highest being most probable
         if np.argmax(pred_s) == true_s:
             reward = 1.0
         else:
@@ -125,13 +117,6 @@ class DANShared:
     def update(self):
 
         # Get a random batch of experiences.
-        # train_batch[i][0]: obs
-        # train_batch[i][1]: action
-        # train_batch[i][2]: reward
-
-        # train_batch[i][3]: next_obs
-        # train_batch[i][4]: is_terminal
-        # train_batch[i][5]: next_state
         train_batch = self.replay_buffer.sample(self.batch_size, self.trace_length)
 
         # Select x or y obs/next_obs, true_state
@@ -167,25 +152,19 @@ class DANShared:
 
     def start_getQ(self, raw_obs, rnn_state, is_train):
         assert(is_train is False)
-        # obs: (1,31) np.zero observation
+        # obs: (1,61) np.zero observation
         obs = self.select_xy(raw_obs)
 
-        # reset qnet, mnet current rnn state
-        # self.test_qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
-        # self.test_mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
-
         Qval, new_rnn_state = self.dan_shared_net.get_Qval(obs, rnn_state)
-        # self.test_qnet_current_rnn_state = rnn_state
 
         return Qval, new_rnn_state
 
     def step_getQ(self, raw_obs, rnn_state, is_train):
         assert (is_train is False)
-        # obs: (1, 31)
+        # obs: (1, 61)
         obs = self.select_xy(raw_obs)
 
         Qval, new_rnn_state = self.dan_shared_net.get_Qval(obs, rnn_state)
-        # self.test_qnet_current_rnn_state = rnn_state
 
         return Qval, new_rnn_state
 
@@ -200,16 +179,13 @@ class DANShared:
             new_rnn_state = rnn_state
 
         else:
-            # prediction, rnn_state = self.mnet.get_prediction(obs, self.test_mnet_current_rnn_state)
             prediction_arr, new_rnn_state = self.dan_shared_net.get_prediction(obs, rnn_state)
-            # self.test_mnet_current_rnn_state = rnn_state
 
             # reward same as 'dan'
             reward = self.get_prediction_reward(prediction_arr[0], state)
             prediction = np.argmax(prediction_arr[0])
 
         return prediction, reward, new_rnn_state
-
 
     def print_variables(self, variable_list):
         variable_names = [v.name for v in variable_list]

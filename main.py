@@ -41,7 +41,6 @@ def main():
     SETTING_NUM = args.index % total_num_sweeps
 
     config = Config()
-    # config.merge_config(arg_params)
     config.merge_config(agent_params)
 
     # save results
@@ -70,7 +69,7 @@ def main():
     test_env = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
 
     # create agent
-    if config.agent_type == 'dan_shared' or config.agent_type == 'shared_attention':
+    if config.agent_type == 'dan_shared': #  or config.agent_type == 'shared_attention':
         agentX = DANShared(config, 'x')
         agentY = DANShared(config, 'y')
 

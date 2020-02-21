@@ -20,6 +20,7 @@ plt_y = True
 # black-n-white compatible
 color_arr = ['#16454E', '#2B6F39', '#747A32', '#D38FC5', '#C2C1F2', '#C6E2E6'] # '#C1796F',
 
+
 def movingaverage(values, window):
     weights = np.repeat(1.0, window) / window
     sma = np.convolve(values, weights, 'valid')

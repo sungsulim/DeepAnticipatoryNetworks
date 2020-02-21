@@ -6,7 +6,7 @@ import argparse
 use_label = True
 num_runs = 25
 
-agent_type_arr = ['dan', 'shared_dan', 'dan_coverage', 'coverage', 'randomAction']
+agent_type_arr = ['dan', 'dan_shared', 'dan_coverage', 'coverage', 'random_policy']
 agent_best_setting = [0, 4, 0, 0, 0]
 
 ma_window = 100
@@ -15,11 +15,9 @@ yloc_arr = list(range(0, 16, 2))
 
 ep_length = 12
 
-color_arr = ['#1f77b4', '#9467bd', '#ff7f0e', '#2ca02c', '#d62728', '#8c564b', '#e377c2', '#7f7f7f']
-
-
 # black-n-white compatible
 color_arr = ['#16454E', '#2B6F39', '#747A32', '#D38FC5', '#C2C1F2', '#C6E2E6'] # '#C1796F',
+
 
 def main():
     parser = argparse.ArgumentParser()
