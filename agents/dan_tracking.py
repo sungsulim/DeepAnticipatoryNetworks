@@ -8,7 +8,7 @@ from agents.networks.mnet import Mnetwork
 class DAN:
     def __init__(self, config, xory):
 
-        self.agent_type = config.agent_type  # 'dan', 'randomAction', 'coverage'
+        self.agent_type = config.agent_type  # 'dan', 'random_policy', 'coverage', 'dan_coverage'
 
         # 'x' or 'y'
         self.xory = xory
@@ -25,6 +25,8 @@ class DAN:
         self.tau = config.tau
         self.nActions = config.nActions
         self.nStates = config.nStates
+
+        self.use_terminal_reward_setting = config.use_terminal_reward_setting
 
         self.replay_buffer = ExperienceBuffer(config.buffer_size, config.random_seed)
 
@@ -55,15 +57,9 @@ class DAN:
         self.qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
         self.mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
 
-        # print("###########")
-        # print("agent start rnn_state", self.qnet_current_rnn_state)
-        # print()
         greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
         self.qnet_current_rnn_state = rnn_state
-        # print()
-        # print("agent start after greedy action rnn_state", self.qnet_current_rnn_state)
-        # input()
-        # print("###########")
+
         if is_train:
 
             if self.agent_type == 'dan' \
@@ -77,12 +73,15 @@ class DAN:
                 else:
                     action = greedy_action[0]
 
-            elif self.agent_type == 'randomAction':
+            elif self.agent_type == 'random_policy':
                 # action = self.rng.randint(0, self.nActions)
                 action = np.random.randint(0, self.nActions)
 
             else:
                 raise ValueError("Invalid self.agent_type")
+
+        else:
+            raise ValueError("It isn't used during evaluation")
 
         return action
 
@@ -90,15 +89,9 @@ class DAN:
         # obs: (1, 31)
         obs = self.select_xy(raw_obs)
 
-        # print("###########")
-        # print("agent step rnn_state", self.qnet_current_rnn_state)
-        # print()
         greedy_action, rnn_state = self.qnet.get_greedy_action(obs, self.qnet_current_rnn_state)
         self.qnet_current_rnn_state = rnn_state
-        # print()
-        # print("agent step after greedy action rnn_state", self.qnet_current_rnn_state)
-        # print("###########")
-        # input()
+
         if is_train:
 
             if self.agent_type == 'dan' \
@@ -113,45 +106,47 @@ class DAN:
                     # greedy action
                     action = greedy_action[0]
 
-            elif self.agent_type == 'randomAction':
+            elif self.agent_type == 'random_policy':
                 # action = self.rng.randint(0, self.nActions)
                 action = np.random.randint(0, self.nActions)
 
             else:
                 raise ValueError("Invalid self.agent_type")
+        else:
+            raise ValueError("It isn't used during evaluation")
 
         return action
 
-    def predict(self, raw_obs, raw_state):
+    def predict(self, raw_obs, raw_state, is_terminal):
         # print("raw_obs", raw_obs)
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)
 
-        prediction, rnn_state = self.mnet.get_prediction(obs, self.mnet_current_rnn_state)
-        self.mnet_current_rnn_state = rnn_state
-
-        # print('agent_prediction', np.shape(prediction), prediction)
-        # print("argmax_prediction", np.argmax(prediction))
-
-        if self.agent_type == 'dan' or self.agent_type == 'randomAction':
-            reward = self.get_prediction_reward(prediction[0], state)
-
-        elif self.agent_type == 'coverage':
-            reward = self.get_coverage_reward(obs)
-
-        elif self.agent_type == 'dan_coverage':
-            reward = self.get_prediction_reward(prediction[0], state)
-            if not reward:
-                reward = self.get_coverage_reward(obs) * 0.2  # 0.2 or 0.0
-
+        if self.use_terminal_reward_setting and not is_terminal:
+            reward = 0
         else:
-            raise ValueError("Invalid self.agent_type")
+            prediction, rnn_state = self.mnet.get_prediction(obs, self.mnet_current_rnn_state)
+            self.mnet_current_rnn_state = rnn_state
+
+            if self.agent_type == 'dan' or self.agent_type == 'random_policy':
+                reward = self.get_prediction_reward(prediction[0], state)
+
+            elif self.agent_type == 'coverage':
+                reward = self.get_coverage_reward(obs)
+
+            elif self.agent_type == 'dan_coverage':
+                reward = self.get_prediction_reward(prediction[0], state)
+                if not reward:
+                    reward = self.get_coverage_reward(obs) * 0.2  # 0.2 or 0.0
+
+            else:
+                raise ValueError("Invalid self.agent_type")
 
         return reward
 
     def get_prediction_reward(self, pred_s, true_s):
-        # true_s : 0~20
-        # pred_s : an array of size (21,) containing prediction values with highest being most probable
+        # true_s : 0~50
+        # pred_s : an array of size (51,) containing prediction values with highest being most probable
         if np.argmax(pred_s) == true_s:
             reward = 1.0
         else:
@@ -187,14 +182,13 @@ class DAN:
             train_batch[i][3] = self.select_xy(train_batch[i][3])
             train_batch[i][5] = self.select_xy(train_batch[i][5])
 
-
-
         # perform update
         if self.agent_type == 'dan' or self.agent_type == 'coverage' or self.agent_type == 'dan_coverage':
+
             self.qnet.update(train_batch, self.trace_length, self.batch_size)
             self.qnet.update_target_network()
 
-        if self.agent_type == 'dan' or self.agent_type == 'randomAction' or self.agent_type == 'dan_coverage':
+        if self.agent_type == 'dan' or self.agent_type == 'random_policy' or self.agent_type == 'dan_coverage':
             self.mnet.update(train_batch, self.trace_length, self.batch_size)
 
         return
@@ -207,39 +201,31 @@ class DAN:
         else:
             return ValueError("Wrong value in self.xory")
 
-    def start_getQ(self, raw_obs, is_train):
+    def start_getQ(self, raw_obs, rnn_state, is_train):
         assert(is_train is False)
         # obs: (1,31) np.zero observation
         obs = self.select_xy(raw_obs)
 
-        # reset qnet, mnet current rnn state
-        self.test_qnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
-        self.test_mnet_current_rnn_state = (np.zeros([1, self.h_size]), np.zeros([1, self.h_size]))
+        Qval, new_rnn_state = self.qnet.get_Qval(obs, rnn_state)
 
-        Qval, rnn_state = self.qnet.get_Qval(obs, self.test_qnet_current_rnn_state)
-        self.test_qnet_current_rnn_state = rnn_state
+        return Qval, new_rnn_state
 
-        return Qval
-
-    def step_getQ(self, raw_obs, is_train):
+    def step_getQ(self, raw_obs, rnn_state, is_train):
         assert (is_train is False)
         # obs: (1, 31)
         obs = self.select_xy(raw_obs)
 
-        Qval, rnn_state = self.qnet.get_Qval(obs, self.test_qnet_current_rnn_state)
-        self.test_qnet_current_rnn_state = rnn_state
+        Qval, new_rnn_state = self.qnet.get_Qval(obs, rnn_state)
 
-        return Qval
+        return Qval, new_rnn_state
 
-    def predict_test(self, raw_obs, raw_state):
-        # print("raw_obs", raw_obs)
+    def predict_test(self, raw_obs, raw_state, rnn_state, _):
         obs = self.select_xy(raw_obs)
         state = self.select_xy(raw_state)
 
-        prediction, rnn_state = self.mnet.get_prediction(obs, self.test_mnet_current_rnn_state)
-        self.test_mnet_current_rnn_state = rnn_state
+        prediction, new_rnn_state = self.mnet.get_prediction(obs, rnn_state)
 
-        if self.agent_type == 'dan' or self.agent_type == 'randomAction' or self.agent_type == 'dan_coverage':
+        if self.agent_type == 'dan' or self.agent_type == 'random_policy' or self.agent_type == 'dan_coverage':
             reward = self.get_prediction_reward(prediction[0], state)
 
         elif self.agent_type == 'coverage':
@@ -248,4 +234,27 @@ class DAN:
         else:
             raise ValueError("Invalid self.agent_type")
 
-        return reward
+        return np.argmax(prediction[0]), reward, new_rnn_state
+
+
+    def print_variables(self, variable_list):
+        variable_names = [v.name for v in variable_list]
+        values = self.sess.run(variable_names)
+
+        count=0
+        for k, v in zip(variable_names, values):
+            count += 1
+
+            if count == 3:
+                print("Variable: ", k)
+                print("Shape: ", v.shape)
+                print(v)
+                return
+
+    def save_network(self, save_dir, xory):
+        self.qnet.save_network(save_dir, xory)
+        self.mnet.save_network(save_dir, xory)
+
+    def restore_network(self, load_dir, xory):
+        self.qnet.restore_network(load_dir, xory)
+        self.mnet.restore_network(load_dir, xory)

@@ -4,47 +4,32 @@ class Config:
     def __init__(self):
 
         # set by command line args
-        self.agent_type = None  # 'normal', 'randomAction', 'coverage'
+        self.agent_type = None  # 'dan', 'dan_coverage', 'random_policy', 'coverage', 'dan_shared'
         self.random_seed = None
 
         # env params
-        self.total_train_steps = 60000  # 3000 episode
-        self.agent_pre_train_steps = 1200  # 100 episodes
+        self.total_train_steps = 60000  # 5000 episode
+        self.agent_pre_train_steps = 3000  # 250 episodes
+
+        self.test_ep_num = 500  # total 100
+        self.test_interval = 6000  # every 500 episodes
+
+        self.buffer_size = 1000000  # 1mil episodes
+        self.update_reward = False
+        self.agent_update_freq = 1
 
         self.max_ep_length = 12  # The max allowed length of our episode.
         self.batch_size = 4
         self.trace_length = 8
 
-        # agent params
-        self.epsilon = 0.3
-        self.update_reward = False
-
-        self.qnet_lr = 0.001
-        self.mnet_lr = 0.001
-        self.agent_update_freq = 1
-        self.h_size = 512  # The size of the final recurrent layer before splitting it into Advantage and Value streams.
-
-        self.test_ep_num = 50  # total 100
-        self.test_interval = 360  # every 30 episodes
-
-        self.buffer_size = 1000000  # 1mil episodes
-
-        self.gamma = 0.99
+        self.fc_size1 = 60
+        self.fc_size2 = 30
         self.tau = 0.01
+        self.gamma = 0.99
 
-        self.nStates = 21
+        self.nStates = 51
         self.nActions = 10
-        self.print_ep_freq = 10
-
-        # self.startE = 1.0
-        # self.endE = 0.1
-        # self.annealing_steps = 50000
-
-        # self.load_model = False  # Whether to load a saved model.
-        # self.path = "./drqn"  # The path to save our model to.
-
-        # self.time_per_step = 1  # Length of each step used in gif creation
-        # self.summaryLength = 25  # Number of epidoes to periodically save for analysis
+        self.print_ep_freq = 100
 
     # add custom setting
     def merge_config(self, custom_config):
