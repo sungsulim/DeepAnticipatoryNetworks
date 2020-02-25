@@ -1,16 +1,23 @@
 # DeepAnticipatoryNetworks
 
+## Sensor Selection Experiments
 
-### Running the Code
-from Master branch:
+### Run training
 
-`python3 main.py --result_dir NAME_OF_TEST --agent_type AGENT_TYPE --random_seed INTEGER_SEED` 
+`python3 main.py --result_dir OUTPUT_DIR --agent_json jsonfiles/AGENT_TYPE.json --index IDX` 
 
-from Sweep branch:
+OUTPUT_DIR: indicates the directory in where the output will be saved.
 
-`python3 main.py --result_dir NAME_OF_TEST --agent_json jsonfiles/AGENT_TYPE.json --index INTEGER`
+AGENT_TYPE: should be one of the following -- 'dan', 'dan_coverage', 'coverage', 'randomAction'
 
+IDX: indicates setting and run number based on the agent jsonfile
 
-NAME_OF_TEST: indicates the directory in ./results/ where the output will be saved.
+### Run multi-person tests
 
-AGENT_TYPE: Should be one of the following -- 'dan', 'dan_coverage', 'coverage', 'randomAction'
+`python3 main_multitest.py --result_dir OUTPUT_DIR --model_dir INPUT_DIR --agent_json jsonfiles/AGENT_TYPE.json --index IDX --num_runs N`
+
+### Plot scripts
+
+`python3 plot_scripts/plot_comparison.py --result_dir INPUT_DIR`
+
+`python3 plot_scripts/plot_multiperson_test.py --result_dir INPUT_DIR`
