@@ -1,6 +1,10 @@
-# DeepAnticipatoryNetworks
+# Deep Anticipatory Networks
 
-## Sensor Selection Experiments
+This repository contains implementation of the following paper: 
+
+Yash Satsangi, Sungsu Lim, Shimon Whiteson, Frans A. Oliehoek, and Martha White. 2020. Maximizing Information Gain via Prediction Rewards. In Proc. of the 19th International Conference on Autonomous Agents and Multiagent Systems (AAMAS 2020), Auckland, New Zealand, May 9–13, 2020, IFAAMAS
+
+# Sensor Selection
 
 ### Run training
 
