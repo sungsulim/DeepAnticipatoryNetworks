@@ -1,16 +1,27 @@
-# DeepAnticipatoryNetworks
+# Deep Anticipatory Networks
 
+This repository contains implementation of the following paper: 
 
-### Running the Code
-from Master branch:
+Yash Satsangi, Sungsu Lim, Shimon Whiteson, Frans A. Oliehoek, and Martha White. 2020. Maximizing Information Gain via Prediction Rewards. In Proc. of the 19th International Conference on Autonomous Agents and Multiagent Systems (AAMAS 2020), Auckland, New Zealand, May 9–13, 2020, IFAAMAS
 
-`python3 main.py --result_dir NAME_OF_TEST --agent_type AGENT_TYPE --random_seed INTEGER_SEED` 
+# Sensor Selection
 
-from Sweep branch:
+### Run training
 
-`python3 main.py --result_dir NAME_OF_TEST --agent_json jsonfiles/AGENT_TYPE.json --index INTEGER`
+`python3 main.py --result_dir OUTPUT_DIR --agent_json jsonfiles/AGENT_TYPE.json --index IDX` 
 
+OUTPUT_DIR: indicates the directory in where the output will be saved.
 
-NAME_OF_TEST: indicates the directory in ./results/ where the output will be saved.
+AGENT_TYPE: should be one of the following -- 'dan', 'dan_coverage', 'coverage', 'randomAction'
 
-AGENT_TYPE: Should be one of the following -- 'dan', 'dan_coverage', 'coverage', 'randomAction'
+IDX: indicates setting and run number based on the agent jsonfile
+
+### Run multi-person tests
+
+`python3 main_multitest.py --result_dir OUTPUT_DIR --model_dir INPUT_DIR --agent_json jsonfiles/AGENT_TYPE.json --index IDX --num_runs N`
+
+### Plot scripts
+
+`python3 plot_scripts/plot_comparison.py --result_dir INPUT_DIR`
+
+`python3 plot_scripts/plot_multiperson_test.py --result_dir INPUT_DIR`
