@@ -12,7 +12,7 @@ Yash Satsangi, Sungsu Lim, Shimon Whiteson, Frans A. Oliehoek, and Martha White.
 
 OUTPUT_DIR: indicates the directory in where the output will be saved.
 
-AGENT_TYPE: should be one of the following -- 'dan', 'dan_coverage', 'coverage', 'randomAction'
+AGENT_TYPE: should be one of the following -- 'dan', 'dan_coverage', 'coverage', 'random_policy'
 
 IDX: indicates setting and run number based on the agent jsonfile
 
