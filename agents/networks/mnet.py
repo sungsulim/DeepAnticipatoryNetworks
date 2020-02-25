@@ -65,9 +65,13 @@ class Mnetwork:
             # and then returned to [batch x units] when sent through the upper levels.
             net = tf.reshape(net, [batch_size, train_length, self.h_size])
 
-            lstm_cell = tf.nn.rnn_cell.LSTMCell(num_units=self.h_size, state_is_tuple=True)
+            lstm_cell = tf.compat.v1.nn.rnn_cell.LSTMCell(num_units=self.h_size, state_is_tuple=True)
+
             input_rnn_state = lstm_cell.zero_state(batch_size, tf.float32)
-            net, current_rnn_state = tf.nn.dynamic_rnn(inputs=net, cell=lstm_cell, dtype=tf.float32, initial_state=input_rnn_state)
+
+            net, current_rnn_state = tf.compat.v1.nn.dynamic_rnn(inputs=net, cell=lstm_cell, dtype=tf.float32,
+                                                       initial_state=input_rnn_state)
+
             net = tf.reshape(net, shape=[-1, self.h_size])
 
             prediction = tf.contrib.layers.fully_connected(net, self.nStates, activation_fn=None,
@@ -76,7 +80,6 @@ class Mnetwork:
                                                            weights_regularizer=tf.contrib.layers.l2_regularizer(0.01),
                                                            biases_initializer=tf.contrib.layers.variance_scaling_initializer(
                                                                factor=1.0, mode="FAN_IN", uniform=True))
-            # prediction = tf.contrib.layers.fully_connected(net, self.nStates, activation_fn=tf.nn.softmax)
 
         return input_obs, input_rnn_state, current_rnn_state, batch_size, train_length, prediction
 

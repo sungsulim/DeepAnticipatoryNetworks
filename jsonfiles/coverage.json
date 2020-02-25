@@ -1,7 +1,7 @@
 {
   "agent_type": ["coverage"],
 
-  "qnet_lr": [1e-1, 1e-2, 1e-3],
+  "qnet_lr": [1e-2, 1e-3, 1e-4],
   "mnet_lr": [0],
   "h_size": [128],
 

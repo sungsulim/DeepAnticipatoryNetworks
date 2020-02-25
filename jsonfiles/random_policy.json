@@ -2,9 +2,8 @@
   "agent_type": ["random_policy"],
 
   "qnet_lr": [0],
-  "mnet_lr": [1e-1, 1e-2, 1e-3],
+  "mnet_lr": [1e-2, 1e-3, 1e-4],
   "h_size": [128],
-
   "epsilon": [0.0],
 
   "use_terminal_reward_setting": [0]

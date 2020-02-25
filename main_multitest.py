@@ -40,7 +40,6 @@ def main_multitest():
     print('Agent setting: ', agent_params)
 
     # get run idx and setting idx
-    RUN_NUM = int(args.index / total_num_sweeps)
     SETTING_NUM = args.index % total_num_sweeps
 
     config = Config()
@@ -49,7 +48,7 @@ def main_multitest():
     print("Testing {} Setting {}".format(config.agent_type, SETTING_NUM))
 
     # save results
-    save_dir = 'results/{}'.format(args.result_dir)
+    save_dir = '{}'.format(args.result_dir)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
@@ -64,9 +63,6 @@ def main_multitest():
     test_track_idx = track_idx[:int(config.test_ep_num)]
     print("test track num: {}".format(len(test_track_idx)))  # 50
 
-    print("test track idx:")
-    print(test_track_idx)
-
     test_batch_arr = [1, 2, 5, 10, 20]
 
     for test_batch_size in test_batch_arr:
@@ -79,7 +75,7 @@ def main_multitest():
         test_env = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
 
         # create agent
-        if config.agent_type == 'dan_shared':  # or config.agent_type == 'shared_attention':
+        if config.agent_type == 'dan_shared':
             agentX = DANShared(config, 'x')
             agentY = DANShared(config, 'y')
         else:
@@ -90,7 +86,7 @@ def main_multitest():
             print("Run {}".format(r))
 
             # Restore model
-            model_dir = 'results/{}'.format(args.model_dir)
+            model_dir = '{}'.format(args.model_dir)
             model_prefix = '{}/{}_setting_{}_run_{}'.format(model_dir, config.agent_type, SETTING_NUM, r)
 
             agentX.restore_network(model_prefix, 'x')
@@ -102,19 +98,6 @@ def main_multitest():
                                     test_env=test_env,
                                     agent={'x': agentX, 'y': agentY},
                                     config=config)
-
-            # Verify loaded model
-            # Test once (single person tracking)
-            # print("Verifying loaded model...")
-            # test_session_time, mean_return_per_episode = experiment.test()
-            #
-            # saved_result_filename = '{}_test_mean_return_per_episode.txt'.format(model_prefix)
-            # saved_result = np.loadtxt(saved_result_filename, delimiter=',')
-            #
-            # print("Single person Test Time: " + time.strftime("%H:%M:%S", time.gmtime(test_session_time)))
-            # print("Mean return per episode: {}, saved result: {}".format(mean_return_per_episode, saved_result[-1]))
-            # if config.agent_type != 'randomAction':
-            #     assert(mean_return_per_episode == saved_result[-1])
 
             # Test multiperson (all test tracks simultaneously)
             episode_return_arr, episode_step_count = experiment.multiperson_test(test_batch_size)

@@ -69,7 +69,7 @@ def main():
     test_env = SSenvReal(config, 'data/sampled_tracks_new', test_track_idx)
 
     # create agent
-    if config.agent_type == 'dan_shared': #  or config.agent_type == 'shared_attention':
+    if config.agent_type == 'dan_shared':
         agentX = DANShared(config, 'x')
         agentY = DANShared(config, 'y')
 
@@ -85,7 +85,7 @@ def main():
                             config=config)
 
     # run experiment
-    train_return_per_episode, test_mean_return_per_episode = experiment.run()
+    train_return_per_episode = experiment.run()
     train_return_per_episodeX, train_return_per_episodeY = train_return_per_episode
 
     # save model
@@ -96,9 +96,6 @@ def main():
     # Train result
     np.array(train_return_per_episodeX).tofile("{}_train_return_per_episodeX.txt".format(save_prefix), sep=',', format='%15.8f')
     np.array(train_return_per_episodeY).tofile("{}_train_return_per_episodeY.txt".format(save_prefix), sep=',', format='%15.8f')
-
-    # Test result
-    np.array(test_mean_return_per_episode).tofile("{}_test_mean_return_per_episode.txt".format(save_prefix), sep=',', format='%15.8f')
 
     config_string = ""
     for key in config.__dict__:
